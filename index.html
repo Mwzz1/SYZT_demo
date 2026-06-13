@@ -1,0 +1,2246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深渊征途 V5.0</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+    min-height:100vh;
+    background:radial-gradient(circle at top,#243b55,#141e30 55%,#090b12);
+    font-family:"Microsoft YaHei",Arial,sans-serif;
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:18px;
+}
+.game{
+    width:1180px;
+    max-width:100%;
+    background:rgba(0,0,0,.78);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:18px;
+    padding:16px;
+    box-shadow:0 0 55px rgba(0,140,255,.25);
+    position:relative;
+}
+.topbar{
+    display:grid;
+    grid-template-columns:1fr 1.1fr 1fr;
+    gap:12px;
+    margin-bottom:12px;
+}
+.card{
+    background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(0,0,0,.22));
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:13px;
+    padding:12px;
+}
+.clickable{cursor:pointer;transition:.2s}
+.clickable:hover{transform:translateY(-2px);border-color:rgba(255,214,90,.6)}
+.label{font-size:12px;color:#aaa;margin-bottom:5px}
+.value{font-size:18px;font-weight:bold;color:#ffd75c}
+.sub{font-size:12px;color:#bbb;line-height:1.6}
+.progress{height:8px;background:rgba(0,0,0,.45);border-radius:999px;overflow:hidden;margin-top:8px}
+.fill{height:100%;width:0%;background:linear-gradient(90deg,#ffd75c,#ff7a45);transition:.3s}
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+}
+.expbox{width:260px}
+.bar{height:15px;border-radius:999px;background:#222;overflow:hidden;border:1px solid #444}
+.expfill{height:100%;background:linear-gradient(90deg,#ffd75c,#ffae00);width:0%}
+.battle-wrap{position:relative}
+#battleCanvas{
+    display:block;width:100%;height:auto;
+    border:2px solid #4c5c85;border-radius:14px;
+    background:#111;
+}
+.banner{
+    position:absolute;top:48px;left:50%;transform:translateX(-50%);
+    padding:8px 18px;border-radius:999px;
+    background:rgba(0,0,0,.72);
+    border:1px solid rgba(255,214,90,.45);
+    color:#ffd75c;font-size:14px;z-index:3;
+    cursor:pointer;
+}
+.turn{
+    position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    padding:7px 24px;border-radius:999px;
+    background:rgba(0,0,0,.75);
+    border:1px solid rgba(255,255,255,.25);
+    color:#8cff9b;font-weight:bold;z-index:3;
+}
+.equipment-hud{
+    position:absolute;right:12px;bottom:12px;
+    display:flex;gap:10px;padding:10px 12px;
+    background:rgba(0,0,0,.72);
+    border:1px solid rgba(255,255,255,.18);
+    border-radius:14px;z-index:4;
+}
+.slot{text-align:center;font-size:11px;color:#aaa}
+.icon{
+    width:44px;height:44px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.09);
+    border:2px solid rgba(255,255,255,.25);
+    font-size:24px;margin-bottom:4px;
+}
+.r-common{border-color:#aaa}.r-rare{border-color:#3fb6ff}.r-epic{border-color:#bd73ff}.r-legendary{border-color:#ffb13b}.r-mythic{border-color:#ff4d6d}
+.main-ui{display:grid;grid-template-columns:300px 230px 1fr;gap:12px;margin-top:12px}
+.panel{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;padding:13px;
+}
+.status-block{background:rgba(0,0,0,.22);border-radius:10px;padding:10px;margin-bottom:10px}
+.status-title{display:flex;justify-content:space-between;margin-bottom:8px;font-weight:bold}
+.row{display:flex;align-items:center;gap:8px;margin:6px 0}
+.row span:first-child{width:36px;color:#aaa;font-size:12px}
+.hpfill{height:100%;background:linear-gradient(90deg,#c92a2a,#ff5b5b)}
+.mpfill{height:100%;background:linear-gradient(90deg,#315bdc,#6b8cff)}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;font-size:12px}
+.stat{display:flex;justify-content:space-between;background:rgba(0,0,0,.22);padding:5px 7px;border-radius:6px}
+.btn{
+    width:100%;border:none;border-radius:9px;
+    padding:11px;margin:5px 0;color:#fff;
+    font-weight:bold;cursor:pointer;transition:.18s;
+}
+.btn:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.1)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.attack{background:linear-gradient(135deg,#e74c3c,#a93226)}
+.skill{background:linear-gradient(135deg,#8e44ad,#5b2c6f)}
+.heal{background:linear-gradient(135deg,#27ae60,#196f3d)}
+.defend{background:linear-gradient(135deg,#2980b9,#1f618d)}
+.item{background:linear-gradient(135deg,#d35400,#873600)}
+.bag{background:linear-gradient(135deg,#16a085,#0b5345)}
+.talent{background:linear-gradient(135deg,#f1c40f,#9a7d0a)}
+.classbtn{background:linear-gradient(135deg,#34495e,#1c2833)}
+.flee{background:linear-gradient(135deg,#7f8c8d,#566573)}
+.log{height:285px;overflow-y:auto;font-size:13px}
+.log-entry{padding:6px 8px;margin:4px 0;border-radius:6px;background:rgba(0,0,0,.22);line-height:1.45}
+.log-system{border-left:3px solid #6b8cff;color:#b7c5ff}
+.log-player{border-left:3px solid #68ff8d;color:#8cff9b}
+.log-enemy{border-left:3px solid #ff6868;color:#ff8b8b}
+.log-loot{border-left:3px solid #ffd75c;color:#ffe08a}
+.log-heal{border-left:3px solid #5eead4;color:#99fff1}
+.popup{
+    display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:720px;max-width:calc(100vw - 34px);max-height:80vh;overflow:auto;
+    background:rgba(0,0,0,.96);border:2px solid rgba(255,255,255,.22);
+    border-radius:18px;padding:18px;z-index:50;box-shadow:0 0 40px rgba(0,0,0,.75)
+}
+.popup.show{display:block}
+.popup-title{font-size:19px;font-weight:bold;color:#ffd75c;margin-bottom:13px;padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.16)}
+.grid{display:grid;gap:10px}
+.grid2{grid-template-columns:repeat(2,1fr)}
+.grid3{grid-template-columns:repeat(3,1fr)}
+.option{
+    padding:12px;border-radius:12px;background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.13);cursor:pointer;transition:.2s
+}
+.option:hover{transform:translateY(-2px);border-color:rgba(255,214,90,.55);background:rgba(255,255,255,.11)}
+.option.active{border-color:#ffd75c;box-shadow:inset 0 0 20px rgba(255,214,90,.12)}
+.title{font-weight:bold;color:#fff;margin-bottom:6px}
+.rarity-common{color:#bbb}.rarity-rare{color:#3fb6ff}.rarity-epic{color:#bd73ff}.rarity-legendary{color:#ffb13b}.rarity-mythic{color:#ff4d6d}
+.map-card{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center}
+.stage-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.stage{min-height:52px;display:flex;flex-direction:column;justify-content:center;align-items:center;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);cursor:pointer;font-size:12px}
+.stage.current{border-color:#ffd75c;color:#ffd75c}.stage.cleared{color:#8cff9b}.stage.locked{opacity:.38;cursor:not-allowed}.stage.boss{border-color:#ff6666;color:#ff7777}
+.drop-actions{display:flex;gap:10px;margin-top:12px}
+.small{padding:9px 12px;border:none;border-radius:8px;background:#405cff;color:white;font-weight:bold;cursor:pointer}
+.small.secondary{background:#555}
+@media(max-width:980px){.topbar,.main-ui{grid-template-columns:1fr}.stage-grid{grid-template-columns:repeat(4,1fr)}}
+
+/* ===== V2.0 画面美化补丁 ===== */
+body{
+    background:
+        radial-gradient(circle at 18% 10%, rgba(93, 168, 255, .22), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(255, 105, 180, .13), transparent 24%),
+        radial-gradient(circle at 50% 90%, rgba(255, 210, 92, .08), transparent 32%),
+        linear-gradient(135deg,#07111f 0%,#10172a 48%,#05070e 100%);
+}
+.game{
+    background:
+        linear-gradient(180deg, rgba(255,255,255,.045), transparent 22%),
+        rgba(2,6,14,.82);
+    backdrop-filter: blur(10px);
+    border:1px solid rgba(160,205,255,.22);
+    box-shadow:
+        0 0 70px rgba(49, 133, 255, .26),
+        inset 0 0 40px rgba(255,255,255,.035);
+}
+.game::before{
+    content:"";
+    position:absolute;
+    inset:-1px;
+    border-radius:18px;
+    pointer-events:none;
+    background:linear-gradient(135deg, rgba(255,215,92,.22), transparent 28%, rgba(77,141,247,.18) 70%, transparent);
+    mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    padding:1px;
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+}
+.value{
+    letter-spacing:.5px;
+}
+.header .value:first-child{
+    font-size:22px;
+    background:linear-gradient(90deg,#fff2a8,#72d5ff,#d29bff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:none;
+}
+.card,.panel{
+    background:
+        linear-gradient(135deg, rgba(255,255,255,.1), rgba(255,255,255,.025)),
+        rgba(2,8,18,.46);
+    border:1px solid rgba(180,220,255,.16);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 24px rgba(0,0,0,.18);
+}
+.card.clickable:hover,.option:hover{
+    box-shadow:0 0 24px rgba(255,215,92,.13), inset 0 1px 0 rgba(255,255,255,.12);
+}
+#battleCanvas{
+    border:2px solid rgba(164,205,255,.38);
+    box-shadow:
+        0 0 32px rgba(80,140,255,.18),
+        inset 0 0 80px rgba(0,0,0,.25);
+}
+.banner,.turn{
+    backdrop-filter: blur(8px);
+    box-shadow:0 0 22px rgba(255,215,92,.12);
+}
+.equipment-hud{
+    background:linear-gradient(135deg, rgba(0,0,0,.78), rgba(30,45,75,.62));
+    border:1px solid rgba(255,255,255,.24);
+    box-shadow:0 0 22px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.icon{
+    box-shadow:inset 0 0 14px rgba(255,255,255,.06), 0 0 10px rgba(0,0,0,.28);
+}
+.r-legendary{box-shadow:0 0 14px rgba(255,177,59,.32), inset 0 0 12px rgba(255,177,59,.08)}
+.r-mythic{box-shadow:0 0 18px rgba(255,77,109,.42), inset 0 0 12px rgba(255,77,109,.12)}
+.btn{
+    position:relative;
+    overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 8px 16px rgba(0,0,0,.22);
+}
+.btn::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(110deg, transparent 0%, rgba(255,255,255,.22) 45%, transparent 65%);
+    transform:translateX(-130%);
+    transition:.45s;
+}
+.btn:hover::after{transform:translateX(130%)}
+.status-block{
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(135deg,rgba(0,0,0,.32),rgba(255,255,255,.035));
+}
+.bar{
+    box-shadow:inset 0 0 8px rgba(0,0,0,.55);
+}
+.hpfill,.mpfill,.expfill,.fill{
+    box-shadow:0 0 12px currentColor;
+}
+.log-entry{
+    border:1px solid rgba(255,255,255,.055);
+    background:linear-gradient(90deg, rgba(255,255,255,.055), rgba(0,0,0,.22));
+}
+.popup{
+    background:
+        radial-gradient(circle at top, rgba(60, 120, 220, .22), transparent 36%),
+        rgba(3,7,16,.97);
+    border:1px solid rgba(200,225,255,.25);
+    box-shadow:0 0 60px rgba(0,0,0,.88), 0 0 35px rgba(77,141,247,.16);
+    backdrop-filter: blur(12px);
+}
+.popup-title{
+    background:linear-gradient(90deg,#ffd75c,#72d5ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+}
+.option{
+    background:linear-gradient(135deg, rgba(255,255,255,.085), rgba(255,255,255,.025));
+    border:1px solid rgba(190,220,255,.14);
+}
+.stage{
+    background:linear-gradient(135deg, rgba(255,255,255,.08), rgba(0,0,0,.22));
+}
+.stage.current{
+    box-shadow:0 0 20px rgba(255,215,92,.22), inset 0 0 15px rgba(255,215,92,.08);
+}
+.stage.boss{
+    box-shadow:0 0 16px rgba(255,80,80,.12);
+}
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,.28);border-radius:999px}
+::-webkit-scrollbar-thumb{background:linear-gradient(#6aa7ff,#ffd75c);border-radius:999px}
+
+
+/* ===== 角色状态栏优化 ===== */
+.character-summary{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+}
+.avatar-badge{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:25px;
+    background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:inset 0 0 12px rgba(255,255,255,.08),0 0 16px rgba(77,141,247,.16);
+}
+.character-main{
+    flex:1;
+}
+.character-name-line{
+    font-size:17px;
+    font-weight:bold;
+    color:#fff;
+}
+.character-sub-line{
+    font-size:12px;
+    color:#ffd75c;
+    margin-top:3px;
+}
+.vital-list{
+    display:grid;
+    gap:8px;
+    margin:10px 0;
+}
+.vital-row{
+    display:grid;
+    grid-template-columns:42px 1fr 70px;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+}
+.vital-name{
+    color:#aaa;
+}
+.vital-value{
+    text-align:right;
+    color:#fff;
+    font-weight:bold;
+}
+.mini-bar{
+    height:10px;
+    background:rgba(0,0,0,.45);
+    border-radius:999px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.12);
+}
+.mini-bar-fill{
+    height:100%;
+    width:100%;
+    transition:width .25s ease;
+}
+.mini-hp{
+    background:linear-gradient(90deg,#ff4d4d,#ff9f43);
+    box-shadow:0 0 10px rgba(255,77,77,.35);
+}
+.mini-mp{
+    background:linear-gradient(90deg,#4d8df7,#7de7ff);
+    box-shadow:0 0 10px rgba(77,141,247,.35);
+}
+.statgrid.rpg-statgrid{
+    grid-template-columns:repeat(2,1fr);
+    gap:7px;
+}
+.rpg-stat{
+    min-height:34px;
+    border:1px solid rgba(255,255,255,.08);
+    background:linear-gradient(135deg,rgba(255,255,255,.075),rgba(0,0,0,.24));
+    border-radius:8px;
+    padding:7px 8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.rpg-stat span:first-child{
+    color:#aaa;
+    font-size:12px;
+}
+.rpg-stat b{
+    color:#fff;
+    font-size:13px;
+}
+.rpg-stat.gear-score{
+    grid-column:1 / -1;
+    background:linear-gradient(135deg,rgba(255,215,92,.14),rgba(0,0,0,.24));
+    border-color:rgba(255,215,92,.22);
+}
+.rpg-stat.gear-score b{
+    color:#ffd75c;
+}
+.enemy-summary{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:8px;
+}
+.enemy-mini-info{
+    flex:1;
+}
+
+
+.currency-line{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}
+.currency-pill{display:inline-block;padding:3px 8px;border-radius:999px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);color:#ffd75c;font-size:12px}
+.cooldown-tag{display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(255,80,80,.18);color:#ff9999;font-size:11px;margin-left:5px}
+.option.disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.45)}
+.setbook-layout{display:grid;gap:12px}
+.set-card{padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(0,0,0,.22))}
+.set-card.active{border-color:rgba(255,215,92,.5);box-shadow:0 0 20px rgba(255,215,92,.12),inset 0 0 18px rgba(255,215,92,.06)}
+.set-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+.set-name{font-weight:bold;color:#ffd75c;font-size:17px}
+.set-progress{color:#fff;font-size:13px}
+.set-effect{padding:6px 8px;margin:5px 0;border-radius:8px;background:rgba(0,0,0,.22);border-left:3px solid rgba(255,255,255,.18);font-size:13px;color:#aaa}
+.set-effect.on{color:#9dffad;border-left-color:#66ff88;background:rgba(60,255,120,.08)}
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.shop-item{padding:12px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13)}
+.enhance-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.enhance-level{color:#ffd75c;font-weight:bold}
+@media(max-width:900px){.shop-grid{grid-template-columns:1fr}}
+
+
+.v3-quick-actions{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:5px;
+    margin-top:8px;
+}
+.v3-quick-actions button{
+    border:none;
+    border-radius:7px;
+    padding:6px 4px;
+    cursor:pointer;
+    color:#fff;
+    font-size:12px;
+    font-weight:bold;
+    background:linear-gradient(135deg,#34495e,#1c2833);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
+}
+.v3-quick-actions button:hover{
+    filter:brightness(1.15);
+    transform:translateY(-1px);
+}
+.help-box{
+    display:grid;
+    gap:10px;
+}
+.help-item{
+    padding:12px;
+    border-radius:12px;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.13);
+}
+.help-title{
+    font-weight:bold;
+    color:#ffd75c;
+    margin-bottom:6px;
+}
+
+
+.build-panel{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.build-badge{padding:5px;border-radius:999px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.12);font-size:11px;text-align:center}
+.build-fire{color:#ff9f43}.build-thunder{color:#ffe45c}.build-crit{color:#ff7eb6}
+.salvage-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.blessing-card{min-height:110px;display:flex;flex-direction:column;justify-content:center}
+.boss-mechanic{margin-top:5px;padding:5px 8px;border-radius:8px;background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.25);color:#ffb0b0;font-size:12px}
+
+.v4-quick-actions{
+    grid-template-columns:repeat(3,1fr) !important;
+}
+.v4-quick-actions button{
+    font-size:12px;
+    padding:7px 4px;
+}
+.lock-note{
+    margin-top:8px;
+    padding:8px 10px;
+    border-radius:8px;
+    background:rgba(255,80,80,.12);
+    border:1px solid rgba(255,80,80,.24);
+    color:#ffb0b0;
+    font-size:12px;
+}
+
+
+/* ===== V5.0 SP战技系统 ===== */
+.sp-glow{animation:spPulse 1.1s infinite alternate}
+@keyframes spPulse{
+ from{filter:brightness(1);box-shadow:0 0 10px rgba(125,231,255,.35)}
+ to{filter:brightness(1.35);box-shadow:0 0 20px rgba(125,231,255,.8)}
+}
+.sp-tip{
+ margin-top:6px;padding:6px 8px;border-radius:8px;
+ background:rgba(125,231,255,.08);
+ border:1px solid rgba(125,231,255,.18);
+ color:#9eefff;font-size:12px;
+}
+
+</style>
+</head>
+<body>
+<div class="game">
+    <div class="header">
+        <div><div class="value">深渊征途 V5.0</div><div class="sub">Abyss Quest · 刷宝 · 套装 · 战技爆发</div></div>
+        <div class="expbox">
+            <div class="bar"><div class="expfill" id="expFill"></div></div>
+            <div class="sub" style="text-align:center"><span id="levelText">Lv.1</span> · EXP <span id="expText">0/100</span></div>
+        </div>
+        <div class="sub">击杀：<span id="killText">0</span></div>
+    </div>
+
+    <div class="topbar">
+        <div class="card clickable" onclick="UI.show('mapPopup')">
+            <div class="label">当前地图（点击查看大地图）</div>
+            <div class="value" id="mapText">🌲 幽暗森林</div>
+            <div class="sub" id="mapRange">第 1 - 10 关</div>
+            <div class="progress"><div class="fill" id="mapProgress"></div></div>
+        </div>
+        <div class="card clickable" onclick="UI.show('stagePopup')">
+            <div class="label">当前关卡（点击查看全部关卡）</div>
+            <div class="value">第 <span id="stageText">1</span> 关</div>
+            <div class="sub" id="stageType">普通战斗</div>
+        </div>
+        <div class="card">
+            <div class="label">角色成长</div>
+            <div class="sub">职业：<span id="classText">战士</span></div>
+            <div class="sub">技能点：<span id="skillPointsText">0</span></div>
+            <div class="sub">装备评分：<span id="gearScoreText">0</span></div>
+            <div class="currency-line">
+                <span class="currency-pill">金币 <span id="goldText">0</span></span>
+                <span class="currency-pill">强化石 <span id="stoneText">0</span></span>
+                <span class="currency-pill">药水 <span id="potionCountText">0</span></span>
+                <span class="currency-pill">精华 <span id="essenceText">0</span></span>
+            </div>
+            <div class="build-panel">
+                <div class="build-badge build-fire">🔥 火焰 <span id="fireBuildText">0</span></div>
+                <div class="build-badge build-thunder">⚡ 雷电 <span id="thunderBuildText">0</span></div>
+                <div class="build-badge build-crit">💥 暴击 <span id="critBuildText">0</span></div>
+            </div>
+            <div class="v3-quick-actions v4-quick-actions">
+                <button onclick="UI.showSetBook()">📜 套装</button>
+                <button onclick="UI.showEnhance()">🔨 强化</button>
+                <button onclick="UI.showSalvage()">♻️ 分解</button>
+                <button onclick="UI.showBuilds()">🌟 流派</button>
+                <button onclick="UI.showShop()">🏪 商店</button>
+                <button onclick="UI.show('helpPopup')">❔ 说明</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="battle-wrap">
+        <div class="turn" id="turnText">玩家回合</div>
+        <div class="banner" onclick="UI.show('mapPopup')" id="battleBanner">🌲 幽暗森林 · 第 1 关</div>
+        <canvas id="battleCanvas" width="900" height="450"></canvas>
+        <div class="equipment-hud">
+            <div class="slot"><div class="icon" id="weaponIcon">⚔️</div>武器</div>
+            <div class="slot"><div class="icon" id="armorIcon">🛡️</div>防具</div>
+            <div class="slot"><div class="icon" id="accessoryIcon">💍</div>饰品</div>
+        </div>
+    </div>
+
+    <div class="main-ui">
+        <div class="panel">
+            <div class="status-block">
+                <div class="character-summary">
+                    <div class="avatar-badge" id="playerAvatar">⚔️</div>
+                    <div class="character-main">
+                        <div class="character-name-line" id="playerName">勇者</div>
+                        <div class="character-sub-line" id="playerSubInfo">Lv.1 战士</div>
+                    </div>
+                </div>
+
+                <div class="vital-list">
+                    <div class="vital-row">
+                        <span class="vital-name">❤️ HP</span>
+                        <div class="mini-bar"><div class="mini-bar-fill mini-hp" id="php"></div></div>
+                        <span class="vital-value" id="phpText">100/100</span>
+                    </div>
+                    <div class="vital-row">
+                        <span class="vital-name">⚡ SP</span>
+                        <div class="mini-bar"><div class="mini-bar-fill mini-mp" id="pmp"></div></div>
+                        <span class="vital-value" id="pmpText">50/50</span>
+                    </div>
+                </div>
+
+                <div class="sp-tip">普通攻击 +5 SP，暴击 +8 SP，防御 +3 SP；技能消耗 SP。</div>
+
+                <div class="statgrid rpg-statgrid">
+                    <div class="rpg-stat"><span>⚔ ATK</span><b id="atkText"></b></div>
+                    <div class="rpg-stat"><span>🛡 DEF</span><b id="defText"></b></div>
+                    <div class="rpg-stat"><span>💨 SPD</span><b id="spdText"></b></div>
+                    <div class="rpg-stat"><span>💥 CRIT</span><b id="critText"></b></div>
+                    <div class="rpg-stat gear-score"><span>⭐ GS 装备评分</span><b id="gearScoreMiniText">0</b></div>
+                </div>
+            </div>
+            <div class="status-block">
+                <div class="enemy-summary">
+                    <div class="avatar-badge" id="enemyAvatar">👺</div>
+                    <div class="enemy-mini-info">
+                        <div class="character-name-line" id="enemyName">哥布林</div>
+                        <div class="character-sub-line" id="enemyType">普通怪</div>
+                    </div>
+                </div>
+                <div class="vital-row">
+                    <span class="vital-name">❤️ HP</span>
+                    <div class="mini-bar"><div class="mini-bar-fill mini-hp" id="ehp"></div></div>
+                    <span class="vital-value" id="ehpText">80/80</span>
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <button class="btn attack" onclick="Battle.playerAttack()">⚔️ 普通攻击</button>
+            <button class="btn skill" onclick="UI.show('skillPopup')">🔥 技能</button>
+            <button class="btn defend" onclick="Battle.defend()">🛡️ 防御</button>
+            <button class="btn item" onclick="UI.showPotionMenu()">🧪 药水</button>
+            <button class="btn bag" onclick="UI.showBag()">💼 装备背包</button>
+            <button class="btn talent" onclick="UI.showTalents()">⭐ 技能树</button>
+            <button class="btn classbtn" onclick="UI.show('classPopup')">🧬 职业</button>
+            <button class="btn bag" onclick="SaveSystem.show()">💾 存档管理</button>
+            <button class="btn talent" onclick="SaveSystem.show()">📂 读取存档</button>
+            <button class="btn flee" id="nextBattleBtn" onclick="Game.nextBattle()">➡️ 下一战</button>
+        </div>
+        <div class="panel log" id="log"></div>
+    </div>
+</div>
+
+<div class="popup" id="skillPopup">
+    <div class="popup-title">🔥 技能</div>
+    <div class="grid grid2" id="skillList"></div>
+    <button class="btn flee" onclick="UI.close('skillPopup')">关闭</button>
+</div>
+
+<div class="popup" id="bagPopup">
+    <div class="popup-title">💼 装备背包</div>
+    <div class="grid" id="bagList"></div>
+    <button class="btn flee" onclick="UI.close('bagPopup')">关闭</button>
+</div>
+
+<div class="popup" id="talentPopup">
+    <div class="popup-title">⭐ 技能树</div>
+    <div class="grid grid2" id="talentList"></div>
+    <button class="btn flee" onclick="UI.close('talentPopup')">关闭</button>
+</div>
+
+<div class="popup" id="classPopup">
+    <div class="popup-title">🧬 职业系统</div>
+    <div class="grid grid2" id="classList"></div>
+    <button class="btn flee" onclick="UI.close('classPopup')">关闭</button>
+</div>
+
+
+
+
+<div class="popup" id="salvagePopup">
+    <div class="popup-title">♻️ 装备分解 / 重铸</div>
+    <div class="grid" id="salvageList"></div>
+    <button class="btn flee" onclick="UI.close('salvagePopup')">关闭</button>
+</div>
+
+<div class="popup" id="buildPopup">
+    <div class="popup-title">🌟 技能流派</div>
+    <div class="grid grid3" id="buildList"></div>
+    <button class="btn flee" onclick="UI.close('buildPopup')">关闭</button>
+</div>
+
+<div class="popup" id="potionPopup">
+    <div class="popup-title">🧪 药水</div>
+    <div class="grid" id="potionList"></div>
+    <button class="btn flee" onclick="UI.close('potionPopup')">关闭</button>
+</div>
+
+<div class="popup" id="setBookPopup">
+    <div class="popup-title">📜 套装图鉴</div>
+    <div class="setbook-layout" id="setBookList"></div>
+    <button class="btn flee" onclick="UI.close('setBookPopup')">关闭</button>
+</div>
+
+<div class="popup" id="enhancePopup">
+    <div class="popup-title">🔨 装备强化</div>
+    <div class="grid" id="enhanceList"></div>
+    <button class="btn flee" onclick="UI.close('enhancePopup')">关闭</button>
+</div>
+
+<div class="popup" id="shopPopup">
+    <div class="popup-title">🏪 冒险商店</div>
+    <div class="shop-grid" id="shopList"></div>
+    <button class="btn flee" onclick="UI.close('shopPopup')">关闭</button>
+</div>
+
+
+<div class="popup" id="helpPopup">
+    <div class="popup-title">❔ 金币 / 强化石 / V3.0 系统说明</div>
+    <div class="help-box">
+        <div class="help-item">
+            <div class="help-title">💰 金币怎么获取？</div>
+            <div class="sub">击杀怪物自动获得金币：普通怪约 35-75，精英怪约 90-150，Boss 约 240-360。药水也会小概率从怪物掉落。</div>
+        </div>
+        <div class="help-item">
+            <div class="help-title">🔨 强化石怎么获取？</div>
+            <div class="sub">Boss 必定掉落 2-4 个强化石；精英怪有概率掉落 1 个强化石；也可以在商店用金币购买。</div>
+        </div>
+        <div class="help-item">
+            <div class="help-title">📜 套装图鉴在哪里？</div>
+            <div class="sub">点击顶部成长状态里的“📜 套装”，可以查看火焰套装、龙神套装、创世套装的 2件 / 3件 激活效果。</div>
+        </div>
+        <div class="help-item">
+            <div class="help-title">🔨 装备强化在哪里？</div>
+            <div class="sub">点击“🔨 强化”，选择背包里的装备进行强化。强化会消耗金币和强化石，并提升装备属性与评分。</div>
+        </div>
+        <div class="help-item">
+            <div class="help-title">🏪 商店在哪里？</div>
+            <div class="sub">点击“🏪 商店”，可以购买小型生命药水、大型生命药水、战技药水、复活药水、强化石、装备箱和旅店恢复。旅店是局外恢复，药水是战斗内有限资源。</div>
+        </div>
+    </div>
+    <button class="btn flee" onclick="UI.close('helpPopup')">关闭</button>
+</div>
+
+<div class="popup" id="mapPopup">
+    <div class="popup-title">🗺️ 世界地图</div>
+    <div class="grid" id="mapList"></div>
+    <button class="btn flee" onclick="UI.close('mapPopup')">关闭</button>
+</div>
+
+<div class="popup" id="stagePopup">
+    <div class="popup-title">📍 全部关卡</div>
+    <div class="stage-grid" id="stageList"></div>
+    <div class="card" style="margin-top:12px" id="stagePreview">点击关卡查看预览。</div>
+    <button class="btn flee" onclick="UI.close('stagePopup')">关闭</button>
+</div>
+
+<div class="popup" id="rewardPopup">
+    <div class="popup-title">✨ 选择一个冒险奖励</div>
+    <div class="grid grid3" id="rewardList"></div>
+</div>
+
+
+<div class="popup" id="savePopup">
+    <div class="popup-title">💾 多存档管理</div>
+    <div class="sub" style="margin-bottom:10px;">每次保存都会生成一个新的存档槽，最多保留 8 个历史存档。</div>
+    <div id="saveInfo" class="grid">暂无存档。</div>
+    <div class="drop-actions">
+        <button class="small" onclick="SaveSystem.save()">保存为新存档</button>
+        <button class="small secondary" onclick="SaveSystem.clearAll()">清空全部存档</button>
+    </div>
+    <button class="btn flee" onclick="UI.close('savePopup')" style="margin-top:12px;">关闭</button>
+</div>
+
+<div class="popup" id="lootPopup">
+    <div class="popup-title">🎁 获得装备</div>
+    <div id="lootContent"></div>
+    <div class="drop-actions">
+        <button class="small" onclick="Inventory.equipPending()">立即装备</button>
+        <button class="small secondary" onclick="Inventory.keepPending()">放入背包</button>
+    </div>
+</div>
+
+<script>
+const canvas=document.getElementById('battleCanvas');
+const ctx=canvas.getContext('2d');
+
+const DATA={
+    maps:[
+        {name:'幽暗森林',icon:'🌲',start:1,end:10,bg:['#162d24','#31523b'],enemies:['哥布林','骷髅兵'],desc:'适合新手冒险的森林。'},
+        {name:'遗忘洞穴',icon:'🕳️',start:11,end:20,bg:['#191a33','#40305b'],enemies:['骷髅兵','黑暗法师','巨魔'],desc:'战意残留的地下洞穴。'},
+        {name:'恶魔遗迹',icon:'🏛️',start:21,end:30,bg:['#30152d','#5a2343'],enemies:['黑暗法师','巨魔','恶魔骑士'],desc:'恶战意量侵蚀的遗迹。'},
+        {name:'远古龙巢',icon:'🐲',start:31,end:999,bg:['#351313','#652416'],enemies:['恶魔骑士','远古巨龙'],desc:'远古巨龙盘踞之地。'}
+    ],
+    builds:{
+        fire:{name:'火焰流',icon:'🔥',desc:'强化火球、燃烧和火焰套装，燃烧层数越高伤害越高。'},
+        thunder:{name:'雷电流',icon:'⚡',desc:'强化闪电链和雷击概率，适合爆发输出。'},
+        crit:{name:'暴击流',icon:'💥',desc:'强化暴击率、影袭和暴击伤害，适合刺客。'}
+    },
+    blessings:[
+        {id:'firePlus',name:'炽焰祝福',icon:'🔥',desc:'燃烧伤害 +50%，火球额外伤害 +15',apply:function(p){p.blessings.push('firePlus');}},
+        {id:'thunderPlus',name:'雷霆祝福',icon:'⚡',desc:'雷击概率 +10%，闪电链伤害 +20',apply:function(p){p.blessings.push('thunderPlus');}},
+        {id:'critPlus',name:'猎杀祝福',icon:'💥',desc:'暴击率 +8%，暴击伤害提升',apply:function(p){p.blessings.push('critPlus');}},
+        {id:'greedPlus',name:'贪婪祝福',icon:'💰',desc:'金币获取 +35%',apply:function(p){p.blessings.push('greedPlus');}},
+        {id:'vampirePlus',name:'鲜血祝福',icon:'🩸',desc:'吸血 +4%',apply:function(p){p.lifeSteal+=0.04;p.blessings.push('vampirePlus');}}
+    ],
+    enemies:[
+        {name:'哥布林',hp:80,atk:15,def:5,spd:10,exp:30,icon:'👺'},
+        {name:'骷髅兵',hp:105,atk:20,def:8,spd:8,exp:40,icon:'💀'},
+        {name:'黑暗法师',hp:90,atk:32,def:6,spd:15,exp:55,icon:'🧙'},
+        {name:'巨魔',hp:160,atk:28,def:12,spd:6,exp:70,icon:'👹'},
+        {name:'恶魔骑士',hp:220,atk:38,def:18,spd:12,exp:95,icon:'😈'},
+        {name:'远古巨龙',hp:360,atk:55,def:25,spd:18,exp:180,icon:'🐉'}
+    ],
+    bosses:{
+        10:{name:'哥布林王',hp:280,atk:36,def:14,spd:12,exp:150,icon:'👑'},
+        20:{name:'骷髅领主',hp:460,atk:52,def:22,spd:12,exp:260,icon:'💀'},
+        30:{name:'恶魔领主',hp:680,atk:70,def:30,spd:16,exp:420,icon:'😈'},
+        40:{name:'龙神',hp:980,atk:92,def:38,spd:20,exp:700,icon:'🐲'}
+    },
+    classes:{
+        warrior:{name:'战士',icon:'⚔️',desc:'HP +30%，攻击 +15%，暴击 -5%。',hp:1.3,mp:1,atk:1.15,def:1.1,crit:-5,skill:'whirlwind'},
+        mage:{name:'法师',icon:'🧙',desc:'SP +50%，技能伤害 +30%，防御较低。',hp:0.9,mp:1.5,atk:0.95,def:0.9,crit:0,skill:'arcaneBlast'},
+        assassin:{name:'刺客',icon:'🗡️',desc:'速度 +25%，暴击 +20%，生命较低。',hp:0.9,mp:1.05,atk:1.05,def:0.9,crit:20,skill:'shadowStrike'},
+        paladin:{name:'圣骑士',icon:'🛡️',desc:'防御 +25%，治疗增强，攻击略低。',hp:1.15,mp:1.15,atk:0.9,def:1.25,crit:0,skill:'holyJudgment'}
+    },
+    skills:{
+        slash:{name:'强力斩击',icon:'⚔️',cost:10,type:'physical',power:1.25,color:'#dff7ff',anim:'slash',cd:1,desc:'稳定的物理伤害。'},
+        fireball:{name:'火球术',icon:'🔥',cost:16,type:'fire',power:1.45,color:'#ff6b2b',anim:'fireball',cd:2,desc:'造成火焰伤害，概率燃烧。'},
+        lightning:{name:'闪电链',icon:'⚡',cost:22,type:'thunder',power:1.55,color:'#ffe45c',anim:'lightning',cd:3,desc:'高伤害，额外提高雷击概率。'},
+        poisonBlade:{name:'毒刃',icon:'☠️',cost:14,type:'poison',power:1.18,color:'#55ff77',anim:'poison',cd:2,desc:'伤害较低，但附加持续中毒。'},
+        frostNova:{name:'冰霜新星',icon:'❄️',cost:20,type:'ice',power:1.25,color:'#7de7ff',anim:'frost',cd:3,desc:'造成冰霜伤害，并降低敌人攻击。'},
+        whirlwind:{name:'旋风斩',icon:'🌪️',cost:20,type:'physical',power:1.75,color:'#bfe9ff',anim:'whirlwind',cd:3,desc:'战士职业技能，多段斩击。'},
+        arcaneBlast:{name:'奥术爆破',icon:'🔮',cost:24,type:'arcane',power:1.9,color:'#b56cff',anim:'arcane',cd:3,desc:'法师职业技能，强力爆炸。'},
+        shadowStrike:{name:'影袭',icon:'🗡️',cost:18,type:'shadow',power:1.6,color:'#8b5cff',anim:'shadow',cd:2,desc:'刺客职业技能，暴击率更高。'},
+        holyJudgment:{name:'圣光审判',icon:'✨',cost:20,type:'holy',power:1.45,color:'#fff4a3',anim:'holy',cd:3,desc:'圣骑士职业技能，伤害并治疗自身。'},
+        dragonBreath:{name:'龙神吐息',icon:'🐲',cost:35,type:'dragon',power:2.35,color:'#ff3d2e',anim:'dragon',cd:5,desc:'龙神套装三件解锁，超高伤害。'}
+    },
+    baseGear:{
+        weapon:[
+            {name:'铁剑',icon:'⚔️',rarity:'common',atk:6,set:null},
+            {name:'钢剑',icon:'🗡️',rarity:'rare',atk:12,set:null},
+            {name:'火焰之剑',icon:'🔥',rarity:'epic',atk:22,set:'flame'},
+            {name:'龙神剑',icon:'🐲',rarity:'legendary',atk:36,set:'dragon'},
+            {name:'创世之刃',icon:'✨',rarity:'mythic',atk:55,set:'creator'}
+        ],
+        armor:[
+            {name:'布衣',icon:'👕',rarity:'common',def:4,set:null},
+            {name:'骑士甲',icon:'🛡️',rarity:'rare',def:11,set:null},
+            {name:'火焰战甲',icon:'🔥',rarity:'epic',def:20,set:'flame'},
+            {name:'龙神甲',icon:'🐉',rarity:'legendary',def:34,set:'dragon'},
+            {name:'创世圣铠',icon:'🌟',rarity:'mythic',def:50,set:'creator'}
+        ],
+        accessory:[
+            {name:'银戒指',icon:'💍',rarity:'common',crit:3,set:null},
+            {name:'疾风戒指',icon:'💎',rarity:'rare',crit:7,spd:3,set:null},
+            {name:'火焰护符',icon:'📿',rarity:'epic',crit:12,set:'flame'},
+            {name:'龙神之眼',icon:'👁️',rarity:'legendary',crit:22,set:'dragon'},
+            {name:'创世核心',icon:'🔮',rarity:'mythic',crit:35,set:'creator'}
+        ]
+    },
+    sets:{
+        flame:{name:'火焰套装',icon:'🔥',effects:[{need:2,text:'2件：攻击 +15%'},{need:3,text:'3件：火焰技能伤害 +25%，燃烧概率提升'}]},
+        dragon:{name:'龙神套装',icon:'🐲',effects:[{need:2,text:'2件：攻击 +20%'},{need:3,text:'3件：暴击 +15%，解锁 龙神吐息'}]},
+        creator:{name:'创世套装',icon:'✨',effects:[{need:2,text:'2件：全属性 +20%'},{need:3,text:'3件：攻击时概率召唤天罚'}]}
+    },
+    shop:[
+        {id:'smallHp',name:'小型生命药水',icon:'🧪',price:70,desc:'小型生命药水 +1，战斗内恢复 35% HP',buy:function(){State.player.potions.smallHp++;}},
+        {id:'bigHp',name:'大型生命药水',icon:'🍷',price:160,desc:'大型生命药水 +1，战斗内恢复 70% HP',buy:function(){State.player.potions.bigHp++;}},
+        {id:'mpPotion',name:'战技药水',icon:'🔷',price:120,desc:'战技药水 +1，战斗内恢复 45% SP',buy:function(){State.player.potions.mp++;}},
+        {id:'revive',name:'复活药水',icon:'✨',price:650,desc:'复活药水 +1，死亡时自动复活一次',buy:function(){State.player.potions.revive++;}},
+        {id:'stone',name:'强化石',icon:'🔨',price:120,desc:'强化石 +1',buy:function(){State.player.stones++;}},
+        {id:'rareBox',name:'稀有装备箱',icon:'🎁',price:350,desc:'随机获得一件稀有以上装备',buy:function(){Inventory.openBox(1);}},
+        {id:'epicBox',name:'史诗装备箱',icon:'💎',price:900,desc:'随机获得一件史诗以上装备',buy:function(){Inventory.openBox(2);}},
+        {id:'essence',name:'重铸精华',icon:'🌀',price:180,desc:'精华 +1，用于重铸装备词条',buy:function(){State.player.essence++;}},
+        {id:'inn',name:'旅店休息',icon:'🏨',price:180,desc:'局外恢复满 HP / SP',buy:function(){State.player.hp=State.player.stats.maxHp;State.player.mp=State.player.stats.maxMp;}}
+    ],
+    affixes:[
+        {name:'锋锐',stat:'atk',value:6},
+        {name:'坚固',stat:'def',value:5},
+        {name:'疾风',stat:'spd',value:4},
+        {name:'幸运',stat:'crit',value:5},
+        {name:'吸血',stat:'lifeSteal',value:0.03,text:'吸血 +3%'},
+        {name:'燃烧',stat:'burn',value:0.15,text:'15% 概率燃烧'},
+        {name:'雷击',stat:'thunder',value:0.12,text:'12% 概率雷击'}
+    ],
+    talents:[
+        {id:'hp',name:'强健体魄',unlock:1,max:5,desc:'每级 HP +25',apply:p=>{p.base.hp+=25;p.hp+=25}},
+        {id:'atk',name:'武器大师',unlock:1,max:5,desc:'每级攻击 +5',apply:p=>{p.base.atk+=5}},
+        {id:'crit',name:'致命一击',unlock:5,max:3,desc:'每级暴击 +5%',apply:p=>{p.base.crit+=5}},
+        {id:'fire',name:'火焰强化',unlock:5,max:3,desc:'每级技能伤害 +8',apply:p=>{p.skillBonus+=8}},
+        {id:'combo',name:'连斩',unlock:10,max:3,desc:'每级普通攻击 +7',apply:p=>{p.comboBonus+=7}},
+        {id:'steal',name:'吸血',unlock:10,max:3,desc:'每级吸血 +3%',apply:p=>{p.lifeSteal+=0.03}},
+        {id:'dragon',name:'龙神斩',unlock:15,max:2,desc:'每级技能伤害 +20',apply:p=>{p.skillBonus+=20}},
+        {id:'god',name:'雷神降临',unlock:15,max:2,desc:'每级暴击 +8%，速度 +5',apply:p=>{p.base.crit+=8;p.base.spd+=5}}
+    ]
+};
+
+const State={
+    stage:1,highest:1,kills:0,game:'player',
+    pendingLoot:null,
+    effects:[],
+    enemyAnim:{active:false,phase:0,kind:'attack'},
+    playerAnim:{active:false,phase:0,kind:'attack'},
+    enemyHitFlash:0,
+    playerHitFlash:0,
+    screenShake:0,
+    player:{
+        name:'勇者',cls:'warrior',level:1,exp:0,expNext:100,
+        base:{hp:100,mp:50,atk:20,def:10,spd:15,crit:5},
+        hp:100,mp:50,stats:{},skillPoints:0,
+        potions:{smallHp:3,bigHp:0,mp:1,revive:0},gold:120,stones:2,essence:0,blessings:[],comboBonus:0,skillBonus:0,lifeSteal:0,cooldowns:{},
+        gear:{weapon:null,armor:null,accessory:null},
+        bag:[],talents:{}
+    },
+    enemy:null,
+    messages:[]
+};
+
+function log(msg,type='system'){
+    const box=document.getElementById('log');
+    const div=document.createElement('div');
+    div.className='log-entry log-'+type;
+    div.innerHTML=msg;
+    box.appendChild(div);
+    box.scrollTop=box.scrollHeight;
+}
+
+function rarityIndex(r){return ['common','rare','epic','legendary','mythic'].indexOf(r)}
+function getMap(stage=State.stage){for(let i=DATA.maps.length-1;i>=0;i--)if(stage>=DATA.maps[i].start)return DATA.maps[i];return DATA.maps[0]}
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+
+const Player={
+    recalc(){
+        const p=State.player, c=DATA.classes[p.cls];
+        let s={
+            maxHp:Math.floor(p.base.hp*c.hp), maxMp:Math.floor(p.base.mp*c.mp),
+            atk:Math.floor(p.base.atk*c.atk), def:Math.floor(p.base.def*c.def),
+            spd:Math.floor(p.base.spd), crit:p.base.crit+c.crit,
+            lifeSteal:p.lifeSteal, skillBonus:p.skillBonus, comboBonus:p.comboBonus,
+            burn:0, thunder:0, skillDamageRate:c.cls==='mage'?1.3:1
+        };
+        Object.values(p.gear).forEach(g=>{
+            if(!g)return;
+            ['atk','def','spd','crit'].forEach(k=>s[k]+=(g[k]||0));
+            if(g.lifeSteal)s.lifeSteal+=g.lifeSteal;
+            if(g.burn)s.burn+=g.burn;
+            if(g.thunder)s.thunder+=g.thunder;
+        });
+        const sets=this.setCounts();
+        Object.entries(sets).forEach(([set,count])=>{
+            if(set==='flame'){
+                if(count>=2)s.atk=Math.floor(s.atk*1.15);
+                if(count>=3){s.skillBonus+=25;s.burn+=0.2}
+            }
+            if(set==='dragon'){
+                if(count>=2)s.atk=Math.floor(s.atk*1.2);
+                if(count>=3)s.crit+=15;
+            }
+            if(set==='creator'){
+                if(count>=2){s.atk=Math.floor(s.atk*1.2);s.def=Math.floor(s.def*1.2);s.crit+=10;s.spd+=10}
+                if(count>=3)s.thunder+=0.25;
+            }
+        });
+        if(p.blessings&&p.blessings.includes('thunderPlus'))s.thunder+=0.10;
+        if(p.blessings&&p.blessings.includes('critPlus'))s.crit+=8;
+        p.stats=s;
+        p.hp=Math.min(p.hp,s.maxHp);
+        p.mp=Math.min(p.mp,s.maxMp);
+    },
+    setCounts(){
+        const counts={};
+        Object.values(State.player.gear).forEach(g=>{if(g&&g.set)counts[g.set]=(counts[g.set]||0)+1});
+        return counts;
+    },
+    gainExp(n){
+        const p=State.player;
+        p.exp+=n;
+        log(`获得 ${n} 经验。`,'system');
+        while(p.exp>=p.expNext){
+            p.exp-=p.expNext;p.level++;p.expNext=Math.floor(p.expNext*1.45);
+            p.base.hp+=rand(12,18);p.base.mp+=rand(6,10);p.base.atk+=rand(2,4);p.base.def+=rand(1,3);
+            p.skillPoints++;
+            this.recalc();p.hp=p.stats.maxHp;p.mp=p.stats.maxMp;
+            log(`🎉 升级到 Lv.${p.level}！获得 1 技能点。`,'system');
+        }
+    },
+    gearScore(){
+        let score=0;
+        Object.values(State.player.gear).forEach(g=>{if(g)score+=Inventory.score(g)});
+        return score;
+    }
+};
+
+const Inventory={
+    createGear(slot, forceRare=null){
+        const list=DATA.baseGear[slot];
+        let idx=0, roll=Math.random();
+        if(forceRare!==null)idx=forceRare;
+        else if(roll>.985)idx=4; else if(roll>.93)idx=3; else if(roll>.76)idx=2; else if(roll>.38)idx=1;
+        idx=Math.min(idx,list.length-1);
+        const base=JSON.parse(JSON.stringify(list[idx]));
+        base.slot=slot;base.uid='g'+Date.now()+Math.floor(Math.random()*99999);base.enhance=0;
+        base.affixes=[];
+        const affixCount={common:0,rare:1,epic:2,legendary:3,mythic:4}[base.rarity]||0;
+        for(let i=0;i<affixCount;i++){
+            const a=DATA.affixes[rand(0,DATA.affixes.length-1)];
+            const val=typeof a.value==='number'?a.value+(['atk','def','spd','crit'].includes(a.stat)?Math.floor(State.stage/10):0):a.value;
+            base[a.stat]=(base[a.stat]||0)+val;
+            base.affixes.push({name:a.name,stat:a.stat,value:val,text:a.text||`${a.name} +${val}`});
+        }
+        return base;
+    },
+    score(g){return (g.atk||0)*10+(g.def||0)*9+(g.crit||0)*8+(g.spd||0)*6+(g.lifeSteal||0)*500+(g.thunder||0)*350+(g.burn||0)*250+rarityIndex(g.rarity)*50+(g.enhance||0)*35},
+    desc(g){
+        let arr=[];
+        if(g.atk)arr.push(`攻击 +${g.atk}`); if(g.def)arr.push(`防御 +${g.def}`);
+        if(g.crit)arr.push(`暴击 +${g.crit}%`); if(g.spd)arr.push(`速度 +${g.spd}`);
+        if(g.lifeSteal)arr.push(`吸血 +${Math.round(g.lifeSteal*100)}%`);
+        if(g.burn)arr.push(`燃烧概率 +${Math.round(g.burn*100)}%`);
+        if(g.thunder)arr.push(`雷击概率 +${Math.round(g.thunder*100)}%`);
+        if(g.enhance)arr.push(`强化等级 +${g.enhance}`);
+        if(g.set)arr.push(`套装：${DATA.sets[g.set].name}`);
+        return arr.join('<br>');
+    },
+    drop(){
+        const slots=['weapon','armor','accessory'];
+        const slot=slots[rand(0,2)];
+        let force=null;
+        if(State.enemy.type==='boss')force=rand(2,4);
+        else if(State.enemy.type==='elite')force=rand(1,3);
+        const g=this.createGear(slot,force);
+        State.pendingLoot=g;
+        document.getElementById('lootContent').innerHTML=this.card(g,true);
+        UI.show('lootPopup');
+        log(`🎁 掉落装备：${g.name}`,'loot');
+    },
+    card(g,compare=false){
+        const cur=State.player.gear[g.slot];
+        const diff=this.score(g)-this.score(cur||{});
+        return `<div class="option">
+            <div class="title rarity-${g.rarity}">${g.icon} ${g.name}</div>
+            <div class="sub">${this.desc(g)}<br>评分：${this.score(g)} ${compare?(diff>=0?`<span style="color:#8cff9b">↑+${diff}</span>`:`<span style="color:#ff7777">↓${diff}</span>`):''}</div>
+        </div>`;
+    },
+    salvage(uid){
+        const p=State.player;
+        const g=p.bag.find(x=>x.uid===uid);
+        if(!g)return;
+        if(Object.values(p.gear).some(eq=>eq&&eq.uid===uid)){log('已装备的装备不能分解，请先换下。','system');return}
+        const idx=p.bag.findIndex(x=>x.uid===uid);
+        const gold=50+rarityIndex(g.rarity)*55+(g.enhance||0)*25;
+        const stones=Math.max(0,rarityIndex(g.rarity)-1);
+        const essence=rarityIndex(g.rarity)>=2?1:0;
+        p.gold+=gold;p.stones+=stones;p.essence+=essence;
+        p.bag.splice(idx,1);
+        log(`♻️ 分解 ${g.name}，获得金币 ${gold}${stones?`，强化石 ${stones}`:''}${essence?`，精华 ${essence}`:''}。`,'loot');
+        UI.update();UI.showSalvage();
+    },
+    reroll(uid){
+        const p=State.player;
+        const g=p.bag.find(x=>x.uid===uid);
+        if(!g)return;
+        const cost=1+Math.floor((g.enhance||0)/3);
+        if((p.essence||0)<cost){log(`重铸需要精华 ${cost}。`,'system');return}
+        p.essence-=cost;
+        if(g.affixes){g.affixes.forEach(a=>{if(g[a.stat])g[a.stat]-=a.value;});}
+        g.affixes=[];
+        const affixCount={common:0,rare:1,epic:2,legendary:3,mythic:4}[g.rarity]||0;
+        for(let i=0;i<affixCount;i++){
+            const a=DATA.affixes[rand(0,DATA.affixes.length-1)];
+            const val=typeof a.value==='number'?a.value+Math.floor(State.stage/10):a.value;
+            g[a.stat]=(g[a.stat]||0)+val;
+            g.affixes.push({name:a.name,stat:a.stat,value:val,text:a.text||`${a.name} +${val}`});
+        }
+        Player.recalc();UI.update();UI.showSalvage();
+        log(`🌀 ${g.name} 词条已重铸。`,'loot');
+    },
+    openBox(minRarity){
+        const slots=['weapon','armor','accessory'];
+        const slot=slots[rand(0,2)];
+        const g=this.createGear(slot,rand(minRarity,Math.min(4,minRarity+2)));
+        State.player.bag.push(g);
+        log(`🎁 打开装备箱，获得 ${g.name}。`,'loot');
+        UI.showBag();
+    },
+    enhance(uid){
+        const p=State.player;
+        const g=p.bag.find(x=>x.uid===uid);
+        if(!g)return;
+        const lv=g.enhance||0;
+        if(lv>=10){log('该装备已强化到最高等级。','system');return}
+        const costGold=80+lv*60;
+        const costStone=1+Math.floor(lv/3);
+        if(p.gold<costGold||p.stones<costStone){log(`强化材料不足，需要金币 ${costGold}、强化石 ${costStone}。`,'system');return}
+        p.gold-=costGold;p.stones-=costStone;g.enhance=lv+1;
+        if(g.atk)g.atk+=2+Math.floor(lv/2);
+        if(g.def)g.def+=2+Math.floor(lv/2);
+        if(g.crit)g.crit+=1;
+        if(g.spd)g.spd+=1;
+        Player.recalc();UI.update();UI.showEnhance();
+        log(`🔨 ${g.name} 强化到 +${g.enhance}。`,'loot');
+    },
+    equip(g){
+        State.player.gear[g.slot]=g;
+        if(!State.player.bag.find(x=>x.uid===g.uid))State.player.bag.push(g);
+        Player.recalc();
+        UI.update();
+        log(`已装备：${g.name}`,'loot');
+    },
+    equipPending(){if(State.pendingLoot){this.equip(State.pendingLoot);State.pendingLoot=null;UI.close('lootPopup')}},
+    keepPending(){if(State.pendingLoot){State.player.bag.push(State.pendingLoot);log('已放入背包。','loot');State.pendingLoot=null;UI.close('lootPopup')}}
+};
+
+const Game={
+    init(){
+        State.player.bag.push(Inventory.createGear('weapon',0),Inventory.createGear('armor',0),Inventory.createGear('accessory',0));
+        State.player.gear.weapon=State.player.bag[0];
+        State.player.gear.armor=State.player.bag[1];
+        State.player.gear.accessory=State.player.bag[2];
+        DATA.talents.forEach(t=>State.player.talents[t.id]=0);
+        Player.recalc();
+        this.spawnEnemy();
+        UI.renderSkills();
+        UI.renderClasses();
+        log('⚔️《深渊征途 V5.0》开始！普通攻击积攒SP，技能消耗SP，打出战技爆发！','system');
+        requestAnimationFrame(Render.loop);
+    },
+    spawnEnemy(){
+        const boss=DATA.bosses[State.stage];
+        let e;
+        if(boss){e=JSON.parse(JSON.stringify(boss));e.type='boss'}
+        else{
+            const map=getMap(); const pool=DATA.enemies.filter(x=>map.enemies.includes(x.name));
+            e=JSON.parse(JSON.stringify(pool[rand(0,pool.length-1)]));
+            e.type=Math.random()<0.18?'elite':'normal';
+            if(e.type==='elite')e.name='精英'+e.name;
+        }
+        const scale=1+(State.stage-1)*0.08, elite=e.type==='elite'?1.45:1;
+        e.maxHp=Math.floor(e.hp*scale*elite);e.hp=e.maxHp;
+        e.atk=Math.floor(e.atk*scale*elite);e.def=Math.floor(e.def*scale*elite);e.spd=Math.floor(e.spd*elite);
+        e.x=680;e.y=300;e.turns=0;e.enraged=false;State.enemy=e;State.game='player';UI.update();
+    },
+    nextBattle(){
+        // 不能跳过当前怪物直接进下一关，否则关卡锁没有意义
+        if(State.enemy && State.enemy.hp > 0 && State.game !== 'victory'){
+            log('必须先击败当前怪物，才能进入下一战。','system');
+            return;
+        }
+
+        State.stage++;
+        if(State.stage>State.highest)State.highest=State.stage;
+        this.spawnEnemy();
+        log(`进入第 ${State.stage} 关。`,'system');
+    },
+    travel(stage){
+        if(stage>State.highest){log('该关卡尚未解锁。','system');return}
+        if(State.enemy && State.enemy.hp>0 && stage>State.stage){
+            log('必须先击败当前怪物，才能前往更高关卡。','system');
+            return;
+        }
+        State.stage=stage;this.spawnEnemy();UI.closeAll();log(`已前往第 ${stage} 关。`,'system');
+    }
+};
+
+const Battle={
+    canAct(){return State.game==='player'},
+    damage(baseAtk,def){return Math.max(1,Math.floor(baseAtk*(0.85+Math.random()*0.3)-def*0.55))},
+    playerAttack(){
+        if(!this.canAct())return;
+        const p=State.player,e=State.enemy,s=p.stats;
+        let dmg=this.damage(s.atk+s.comboBonus,e.def);
+        const crit=Math.random()*100<s.crit;if(crit)dmg=Math.floor(dmg*1.6);
+        const spGain=crit?8:5;
+        p.mp=Math.min(p.stats.maxMp,p.mp+spGain);
+        Effects.float(180,185,'+'+spGain+' SP','#7de7ff');
+        if(Math.random()<s.thunder){dmg+=Math.floor(s.atk*.8);log('⚡ 雷击触发！','player')}
+        if(Math.random()<s.burn){e.burn=(e.burn||0)+2;log('🔥 敌人燃烧了！','player')}
+        State.playerAnim={active:true,phase:0,kind:crit?'crit':'attack'};
+        State.enemyHitFlash=16;
+        e.hp-=dmg;
+        Effects.playerHit(e,dmg,crit);
+        log(`普通攻击造成 ${dmg} 伤害${crit?'（暴击）':''}，获得 ${spGain} SP。`,'player');
+        this.afterPlayerHit(dmg);
+    },
+    useSkill(skillId='slash'){
+        if(!this.canAct())return;
+        const p=State.player,e=State.enemy,s=p.stats;
+        const skill=DATA.skills[skillId]||DATA.skills.slash;
+
+        if(skillId==='dragonBreath' && Player.setCounts().dragon<3){
+            log('需要龙神套装 3 件才能使用龙神吐息。','system');
+            return;
+        }
+
+        const cdLeft=p.cooldowns[skillId]||0;
+        if(cdLeft>0){
+            log(`${skill.name} 冷却中，还剩 ${cdLeft} 回合。`,'system');
+            return;
+        }
+
+        if(p.mp<skill.cost){
+            log('SP 不足，先用普通攻击或防御积攒SP。','system');
+            return;
+        }
+
+        // 点击技能后自动关闭技能菜单
+        UI.close('skillPopup');
+
+        p.mp-=skill.cost;
+        Effects.float(180,185,'-'+skill.cost+' SP','#7de7ff');
+        p.cooldowns[skillId]=skill.cd||1;
+
+        let power=skill.power;
+        if(DATA.classes[p.cls].name==='法师' && ['fire','thunder','arcane','ice'].includes(skill.type))power*=1.3;
+        if(skillId==='shadowStrike')s.crit+=20;
+
+        let dmg=this.damage(s.atk*power+s.skillBonus,e.def);
+
+        if(skillId==='lightning')dmg+=Math.floor(s.atk*.35);
+        if(skillId==='dragonBreath')dmg+=Math.floor(s.atk*.9);
+
+        const crit=Math.random()*100<s.crit;
+        if(crit)dmg=Math.floor(dmg*1.6);
+
+        e.hp-=dmg;
+
+        Effects.skill(skill,e,dmg);
+        log(`${skill.icon} ${skill.name} 造成 ${dmg} 伤害${crit?'（暴击）':''}。`,'player');
+
+        if(skillId==='fireball'){
+            if(p.blessings&&p.blessings.includes('firePlus'))dmg+=15;
+            if(e.burn)dmg+=e.burn*18;
+        }
+        if(skillId==='fireball' && Math.random()<(p.blessings&&p.blessings.includes('firePlus')?0.7:0.45)){e.burn=(e.burn||0)+2;log('🔥 敌人被点燃了。','player')}
+        if(skillId==='poisonBlade'){e.poison=(e.poison||0)+3;log('☠️ 敌人中毒了。','player')}
+        if(skillId==='frostNova'){e.weaken=(e.weaken||0)+2;log('❄️ 敌人攻击被削弱。','player')}
+        if(skillId==='holyJudgment'){
+            const h=Math.floor(dmg*.35);
+            p.hp=Math.min(p.stats.maxHp,p.hp+h);
+            log(`✨ 圣光恢复 ${h} HP。`,'heal');
+        }
+
+        this.afterPlayerHit(dmg);
+    },
+    useHeal(){
+        log('治疗技能已移除，请使用有限药水或前往旅店恢复。','system');
+    },
+    usePotion(type='smallHp'){
+        if(!this.canAct())return;
+        const p=State.player;
+        p.potions=p.potions||{smallHp:0,bigHp:0,mp:0,revive:0};
+
+        if(type==='smallHp'){
+            if(p.potions.smallHp<=0){log('小型生命药水不足。','system');return}
+            if(p.hp>=p.stats.maxHp){log('HP 已满，不能无效使用药水。','system');return}
+            p.potions.smallHp--;
+            const heal=Math.max(1,Math.floor(p.stats.maxHp*0.35));
+            p.hp=Math.min(p.stats.maxHp,p.hp+heal);
+            Effects.float(180,165,'+'+heal,'#66ff99');
+            log(`使用小型生命药水，恢复 ${heal} HP。`,'heal');
+        }
+
+        if(type==='bigHp'){
+            if(p.potions.bigHp<=0){log('大型生命药水不足。','system');return}
+            if(p.hp>=p.stats.maxHp){log('HP 已满，不能无效使用药水。','system');return}
+            p.potions.bigHp--;
+            const heal=Math.max(1,Math.floor(p.stats.maxHp*0.70));
+            p.hp=Math.min(p.stats.maxHp,p.hp+heal);
+            Effects.float(180,165,'+'+heal,'#66ff99');
+            log(`使用大型生命药水，恢复 ${heal} HP。`,'heal');
+        }
+
+        if(type==='mp'){
+            if(p.potions.mp<=0){log('战技药水不足。','system');return}
+            if(p.mp>=p.stats.maxMp){log('SP 已满，不能无效使用战技药水。','system');return}
+            p.potions.mp--;
+            const rec=Math.max(1,Math.floor(p.stats.maxMp*0.45));
+            p.mp=Math.min(p.stats.maxMp,p.mp+rec);
+            Effects.float(180,185,'+'+rec,'#7de7ff');
+            log(`使用战技药水，恢复 ${rec} SP。`,'heal');
+        }
+
+        UI.close('potionPopup');
+        this.endPlayerTurn();
+    },
+    defend(){
+        if(!this.canAct())return;
+        const p=State.player;
+        State.player.defending=true;
+        p.mp=Math.min(p.stats.maxMp,p.mp+3);
+        Effects.float(180,185,'+3 SP','#7de7ff');
+        log('进入防御姿态，获得 3 SP。','player');
+        this.endPlayerTurn();
+    },
+    afterPlayerHit(dmg){
+        const p=State.player,e=State.enemy,s=p.stats;
+        if(s.lifeSteal){const h=Math.max(1,Math.floor(dmg*s.lifeSteal));p.hp=Math.min(s.maxHp,p.hp+h);log(`吸血恢复 ${h} HP。`,'heal')}
+        if(e.hp<=0){this.win();return}
+        this.endPlayerTurn();
+    },
+    endPlayerTurn(){State.game='enemy';UI.update();setTimeout(()=>this.enemyTurn(),500)},
+    enemyTurn(){
+        const p=State.player,e=State.enemy;
+        if(e.burn){
+            const bd=12*e.burn;
+            e.hp-=bd;
+            e.burn--;
+            Effects.float(e.x,e.y-130,'-'+bd,'#ff6b2b');
+            log(`燃烧造成 ${bd} 伤害。`,'player');
+            if(e.hp<=0){this.win();return}
+        }
+        if(e.poison){
+            const pd=10*e.poison;
+            e.hp-=pd;
+            e.poison--;
+            Effects.float(e.x,e.y-155,'-'+pd,'#55ff77');
+            log(`中毒造成 ${pd} 伤害。`,'player');
+            if(e.hp<=0){this.win();return}
+        }
+
+        e.turns=(e.turns||0)+1;
+        if(e.type==='boss'){
+            if(e.name.includes('龙') && e.turns%3===0){
+                const bd=Math.floor(State.player.stats.maxHp*0.18);
+                State.player.hp-=bd;
+                Effects.float(180,130,'龙息','#+ff6b2b'.replace('#+','#'));
+                log('🐲 Boss机制：龙息造成最大生命18%的伤害。','enemy');
+            }
+            if(e.name.includes('骷髅') && e.turns%4===0){
+                e.hp=Math.min(e.maxHp,e.hp+Math.floor(e.maxHp*0.08));
+                Effects.float(e.x,e.y-150,'召唤','#bd92ff');
+                log('💀 Boss机制：骷髅领主恢复8%生命。','enemy');
+            }
+            if(!e.enraged && e.hp/e.maxHp<0.5){
+                e.enraged=true;e.atk=Math.floor(e.atk*1.35);
+                log('😈 Boss机制：进入狂暴，攻击力提升！','enemy');
+            }
+        }
+
+        // 怪物攻击动画：先播放，再结算伤害
+        State.enemyAnim={active:true,phase:0,kind:e.type==='boss'?'boss':'attack'};
+        State.screenShake=e.type==='boss'?10:6;
+
+        setTimeout(()=>{
+            let enemyAtk=e.atk;
+            if(e.weaken){enemyAtk=Math.floor(enemyAtk*.72);e.weaken--}
+
+            let dmg=this.damage(enemyAtk,p.stats.def);
+            if(p.defending){
+                dmg=Math.floor(dmg*.45);
+                p.defending=false;
+            }
+
+            p.hp-=dmg;
+            State.playerHitFlash=18;
+            Effects.enemyHit(p,dmg,e.type);
+            log(`${e.name} 造成 ${dmg} 伤害。`,'enemy');
+
+            if(p.hp<=0){
+                p.potions=p.potions||{smallHp:0,bigHp:0,mp:0,revive:0};
+                if(p.potions.revive>0){
+                    p.potions.revive--;
+                    p.hp=Math.max(1,Math.floor(p.stats.maxHp*0.5));
+                    Effects.float(180,145,'复活','#ffd75c');
+                    log('✨ 复活药水自动发动，恢复 50% HP。','heal');
+                }else{
+                    p.hp=1;
+                    log('你被击倒了！没有复活药水，体验版保留 1 HP。建议回旅店恢复。','system');
+                }
+            }
+
+            State.game='player';
+            Object.keys(p.cooldowns).forEach(k=>{
+                if(p.cooldowns[k]>0)p.cooldowns[k]--;
+                if(p.cooldowns[k]<=0)delete p.cooldowns[k];
+            });
+            UI.update();
+        }, 420);
+    },
+    win(){
+        const e=State.enemy,p=State.player;
+        e.hp=0;State.kills++;
+        State.game='victory';
+        const goldGain=(e.type==='boss'?rand(240,360):e.type==='elite'?rand(90,150):rand(35,75));
+        const stoneGain=e.type==='boss'?rand(2,4):(e.type==='elite'&&Math.random()<0.45?1:0);
+        p.gold+=goldGain;p.stones+=stoneGain;
+        log(`获得金币 ${goldGain}${stoneGain?`，强化石 ${stoneGain}`:''}。`,'loot');
+        Player.gainExp(e.exp||50);
+
+        // 有限药水掉落
+        if(Math.random()<(e.type==='boss'?0.9:e.type==='elite'?0.45:0.18)){
+            const roll=Math.random();
+            if(roll<0.65){p.potions.smallHp++;log('掉落：小型生命药水 +1。','loot');}
+            else if(roll<0.88){p.potions.mp++;log('掉落：战技药水 +1。','loot');}
+            else {p.potions.bigHp++;log('掉落：大型生命药水 +1。','loot');}
+        }
+        if(e.type==='boss'&&Math.random()<0.25){
+            p.potions.revive++;
+            log('Boss 掉落：复活药水 +1。','loot');
+        }
+        if(e.type==='boss'){p.skillPoints+=8;log('🏆 Boss 击杀奖励：+3 技能点，地图 Boss 额外 +5 技能点。','system')}
+        else if(e.type==='elite'&&Math.random()<.2){p.skillPoints++;log('⭐ 精英怪掉落 1 技能点。','system')}
+        if(Math.random()<(e.type==='boss'?1:e.type==='elite'?.55:.28))Inventory.drop();
+        if(State.stage>=State.highest)State.highest=State.stage+1;
+        UI.update();
+        setTimeout(()=>UI.showReward(),600);
+    }
+};
+
+
+const SaveSystem={
+    key:'abyss_quest_save_slots_v5',
+    oldKey:'RPG_V2_SAVE_DATA',
+    maxSlots:8,
+
+    serializeGear(g){
+        return g ? JSON.parse(JSON.stringify(g)) : null;
+    },
+
+    makeData(){
+        const p=State.player;
+        return {
+            version:'5.2',
+            savedAt:new Date().toLocaleString(),
+            timestamp:Date.now(),
+            stage:State.stage,
+            highest:State.highest,
+            kills:State.kills,
+            player:{
+                name:p.name,
+                cls:p.cls,
+                level:p.level,
+                exp:p.exp,
+                expNext:p.expNext,
+                base:p.base,
+                hp:p.hp,
+                mp:p.mp,
+                skillPoints:p.skillPoints,
+                potions:p.potions,
+                gold:p.gold,
+                stones:p.stones,
+                essence:p.essence,
+                blessings:p.blessings,
+                cooldowns:p.cooldowns,
+                comboBonus:p.comboBonus,
+                skillBonus:p.skillBonus,
+                lifeSteal:p.lifeSteal,
+                talents:p.talents,
+                gear:{
+                    weapon:this.serializeGear(p.gear.weapon),
+                    armor:this.serializeGear(p.gear.armor),
+                    accessory:this.serializeGear(p.gear.accessory)
+                },
+                bag:p.bag.map(g=>this.serializeGear(g))
+            }
+        };
+    },
+
+    getSlots(){
+        try{
+            const raw=localStorage.getItem(this.key);
+            let slots=raw?JSON.parse(raw):[];
+
+            const oldRaw=localStorage.getItem(this.oldKey);
+            if(oldRaw && !slots.some(s=>s.fromOldKey)){
+                const oldData=JSON.parse(oldRaw);
+                if(oldData && oldData.player){
+                    slots.push({
+                        id:'old_'+(oldData.timestamp||0),
+                        fromOldKey:true,
+                        version:oldData.version||'旧版本',
+                        savedAt:oldData.savedAt||'旧单槽存档',
+                        timestamp:oldData.timestamp||0,
+                        stage:oldData.stage||1,
+                        level:oldData.player.level||1,
+                        gold:oldData.player.gold||0,
+                        data:oldData
+                    });
+                }
+            }
+
+            return Array.isArray(slots)?slots:[];
+        }catch(err){
+            return [];
+        }
+    },
+
+    setSlots(slots){
+        const clean=slots
+            .filter(s=>s && s.data && !s.fromOldKey)
+            .sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))
+            .slice(0,this.maxSlots);
+        localStorage.setItem(this.key,JSON.stringify(clean));
+    },
+
+    save(){
+        try{
+            const data=this.makeData();
+            const slots=this.getSlots().filter(s=>!s.fromOldKey);
+
+            slots.unshift({
+                id:'save_'+Date.now(),
+                version:data.version,
+                savedAt:data.savedAt,
+                timestamp:data.timestamp,
+                stage:data.stage,
+                level:data.player.level,
+                gold:data.player.gold||0,
+                data:data
+            });
+
+            this.setSlots(slots);
+            log('💾 已保存为新存档：'+data.savedAt,'system');
+            this.show();
+        }catch(err){
+            log('⚠️ 存档失败：'+err.message,'system');
+            alert('存档失败：'+err.message);
+        }
+    },
+
+    applyData(data){
+        const sp=data.player;
+        State.stage=data.stage||1;
+        State.highest=data.highest||State.stage;
+        State.kills=data.kills||0;
+
+        const p=State.player;
+        p.name=sp.name||'勇者';
+        p.cls=sp.cls||'warrior';
+        p.level=sp.level||1;
+        p.exp=sp.exp||0;
+        p.expNext=sp.expNext||100;
+        p.base=sp.base||{hp:100,mp:50,atk:20,def:10,spd:15,crit:5};
+        p.hp=sp.hp||p.base.hp;
+        p.mp=sp.mp||p.base.mp;
+        p.skillPoints=sp.skillPoints||0;
+        p.potions=sp.potions||{smallHp:sp.potion||0,bigHp:0,mp:1,revive:0};
+        p.gold=sp.gold||0;
+        p.stones=sp.stones||0;
+        p.essence=sp.essence||0;
+        p.blessings=sp.blessings||[];
+        p.cooldowns=sp.cooldowns||{};
+        p.comboBonus=sp.comboBonus||0;
+        p.skillBonus=sp.skillBonus||0;
+        p.lifeSteal=sp.lifeSteal||0;
+        p.talents=sp.talents||{};
+        p.bag=Array.isArray(sp.bag)?sp.bag:[];
+        p.gear={
+            weapon:sp.gear&&sp.gear.weapon?sp.gear.weapon:null,
+            armor:sp.gear&&sp.gear.armor?sp.gear.armor:null,
+            accessory:sp.gear&&sp.gear.accessory?sp.gear.accessory:null
+        };
+
+        DATA.talents.forEach(t=>{
+            if(typeof p.talents[t.id] === 'undefined') p.talents[t.id]=0;
+        });
+
+        if(p.bag.length===0){
+            p.bag.push(Inventory.createGear('weapon',0),Inventory.createGear('armor',0),Inventory.createGear('accessory',0));
+            p.gear.weapon=p.bag[0];
+            p.gear.armor=p.bag[1];
+            p.gear.accessory=p.bag[2];
+        }
+
+        Player.recalc();
+        Game.spawnEnemy();
+        UI.renderSkills();
+        UI.renderClasses();
+        UI.update();
+        UI.closeAll();
+    },
+
+    loadSlot(id){
+        try{
+            const slot=this.getSlots().find(s=>s.id===id);
+            if(!slot || !slot.data){
+                alert('没有找到该存档。');
+                return;
+            }
+
+            if(!confirm('读取该存档会覆盖当前进度，是否继续？'))return;
+
+            this.applyData(slot.data);
+            log('📂 读档成功：'+(slot.savedAt||'未知时间'),'system');
+            UI.close('savePopup');
+        }catch(err){
+            log('⚠️ 读档失败：'+err.message,'system');
+            alert('读档失败：'+err.message);
+        }
+    },
+
+    deleteSlot(id){
+        if(!confirm('确定删除这个存档吗？'))return;
+        const slots=this.getSlots().filter(s=>s.id!==id && !s.fromOldKey);
+        this.setSlots(slots);
+        log('已删除一个存档。','system');
+        this.show();
+    },
+
+    clearAll(){
+        if(!confirm('确定清空全部存档吗？'))return;
+        localStorage.removeItem(this.key);
+        localStorage.removeItem(this.oldKey);
+        log('全部存档已清空。','system');
+        this.show();
+    },
+
+    show(){
+        const box=document.getElementById('saveInfo');
+        const slots=this.getSlots().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+        if(!box)return;
+
+        if(slots.length===0){
+            box.innerHTML='<div class="option"><div class="title">暂无存档</div><div class="sub">点击“保存为新存档”创建一个存档槽。</div></div>';
+        }else{
+            box.innerHTML=slots.map((s,i)=>{
+                const deleteBtn=s.fromOldKey
+                    ? ''
+                    : "<button class='small secondary' onclick=\"SaveSystem.deleteSlot('" + s.id + "')\">删除</button>";
+
+                return "<div class='option'>" +
+                    "<div class='title'>存档 " + (i+1) + (s.fromOldKey ? "（旧单槽）" : "") + "</div>" +
+                    "<div class='sub'>时间：" + (s.savedAt || "未知") + "<br>版本：" + (s.version || "未知") +
+                    " · 关卡：第 " + (s.stage || 1) + " 关 · 等级：Lv." + (s.level || 1) + "<br>金币：" + (s.gold || 0) + "</div>" +
+                    "<div class='drop-actions' style='margin-top:8px;'>" +
+                    "<button class='small' onclick=\"SaveSystem.loadSlot('" + s.id + "')\">读取</button>" +
+                    deleteBtn +
+                    "</div></div>";
+            }).join('');
+        }
+
+        UI.show('savePopup');
+    },
+
+    // 兼容旧按钮
+    load(){
+        this.show();
+    },
+
+    remove(){
+        this.clearAll();
+    }
+};
+
+const UI={
+    show(id){document.getElementById(id).classList.add('show'); if(id==='mapPopup')this.renderMap(); if(id==='stagePopup')this.renderStages()},
+    close(id){document.getElementById(id).classList.remove('show')},
+    closeAll(){document.querySelectorAll('.popup').forEach(p=>p.classList.remove('show'))},
+    pct(a,b){return Math.max(0,Math.min(100,Math.floor(a/b*100)))+'%'},
+    update(){
+        Player.recalc();
+        const p=State.player,e=State.enemy,map=getMap();
+        document.getElementById('levelText').textContent='Lv.'+p.level;
+        document.getElementById('expText').textContent=p.exp+'/'+p.expNext;
+        document.getElementById('expFill').style.width=this.pct(p.exp,p.expNext);
+        document.getElementById('killText').textContent=State.kills;
+        document.getElementById('mapText').textContent=map.icon+' '+map.name;
+        document.getElementById('mapRange').textContent='第 '+map.start+' - '+(map.end>=999?'∞':map.end)+' 关';
+        const end=map.end>=999?Math.max(map.start+9,State.stage):map.end;
+        document.getElementById('mapProgress').style.width=this.pct(State.stage-map.start+1,end-map.start+1);
+        document.getElementById('stageText').textContent=State.stage;
+        document.getElementById('stageType').innerHTML=DATA.bosses[State.stage]?'👑 Boss 战':'普通战斗';
+        document.getElementById('classText').textContent=DATA.classes[p.cls].icon+' '+DATA.classes[p.cls].name;
+        document.getElementById('skillPointsText').textContent=p.skillPoints;
+        document.getElementById('gearScoreText').textContent=Player.gearScore();
+        document.getElementById('goldText').textContent=p.gold||0;
+        document.getElementById('stoneText').textContent=p.stones||0;
+        p.potions=p.potions||{smallHp:0,bigHp:0,mp:0,revive:0};
+        const potionTotal=(p.potions.smallHp||0)+(p.potions.bigHp||0)+(p.potions.mp||0)+(p.potions.revive||0);
+        document.getElementById('potionCountText').textContent=potionTotal;
+        document.getElementById('essenceText').textContent=p.essence||0;
+        document.getElementById('fireBuildText').textContent=Math.floor(UI.buildScore('fire'));
+        document.getElementById('thunderBuildText').textContent=Math.floor(UI.buildScore('thunder'));
+        document.getElementById('critBuildText').textContent=Math.floor(UI.buildScore('crit'));
+        document.getElementById('battleBanner').textContent=map.icon+' '+map.name+' · 第 '+State.stage+' 关'+(DATA.bosses[State.stage]?' · 👑 Boss':'');
+        document.getElementById('turnText').textContent=State.game==='player'?'玩家回合':State.game==='victory'?'胜利':'敌人回合';
+        const nextBtn=document.getElementById('nextBattleBtn');
+        if(nextBtn){
+            const canNext=State.enemy && State.enemy.hp<=0;
+            nextBtn.disabled=!canNext;
+            nextBtn.textContent=canNext?'➡️ 下一战':'🔒 击败怪物后解锁';
+        }
+        document.getElementById('playerAvatar').textContent=DATA.classes[p.cls].icon;
+        document.getElementById('playerName').textContent=p.name;
+        document.getElementById('playerSubInfo').textContent='Lv.'+p.level+' '+DATA.classes[p.cls].name;
+        document.getElementById('php').style.width=this.pct(p.hp,p.stats.maxHp);document.getElementById('phpText').textContent=Math.floor(p.hp)+'/'+p.stats.maxHp;
+        document.getElementById('pmp').style.width=this.pct(p.mp,p.stats.maxMp);document.getElementById('pmpText').textContent=Math.floor(p.mp)+'/'+p.stats.maxMp;
+        if(p.mp>=p.stats.maxMp)document.getElementById('pmp').classList.add('sp-glow');else document.getElementById('pmp').classList.remove('sp-glow');
+        document.getElementById('atkText').textContent=p.stats.atk;document.getElementById('defText').textContent=p.stats.def;
+        document.getElementById('spdText').textContent=p.stats.spd;document.getElementById('critText').textContent=p.stats.crit+'%';
+        document.getElementById('gearScoreMiniText').textContent=Player.gearScore();
+
+        document.getElementById('enemyAvatar').textContent=e.icon;
+        document.getElementById('enemyName').textContent=e.name;
+        document.getElementById('enemyType').textContent=e.type==='boss'?'👑 BOSS':e.type==='elite'?'⭐ 精英怪':'普通怪';
+        document.getElementById('ehp').style.width=this.pct(e.hp,e.maxHp);document.getElementById('ehpText').textContent=Math.max(0,Math.floor(e.hp))+'/'+e.maxHp;
+        ['weapon','armor','accessory'].forEach(slot=>{
+            const g=p.gear[slot], el=document.getElementById(slot+'Icon');
+            el.textContent=g?g.icon:{weapon:'⚔️',armor:'🛡️',accessory:'💍'}[slot];
+            el.className='icon r-'+(g?g.rarity:'common');
+            el.title=g?g.name:'空';
+        });
+        document.querySelectorAll('.btn').forEach(b=>{if(!b.classList.contains('flee')&&!b.classList.contains('bag')&&!b.classList.contains('talent')&&!b.classList.contains('classbtn'))b.disabled=State.game!=='player'});
+    },
+    renderSkills(){
+        const box=document.getElementById('skillList');
+        const p=State.player;
+        const classSkill=DATA.classes[p.cls].skill;
+        let ids=['slash','fireball','lightning','poisonBlade','frostNova',classSkill];
+
+        if(Player.setCounts().dragon>=3)ids.push('dragonBreath');
+
+        // 去重
+        ids=[...new Set(ids)];
+
+        box.innerHTML=ids.map(id=>{
+            const sk=DATA.skills[id];
+            const classTag=id===classSkill?'职业技能':'通用技能';
+            const locked=id==='dragonBreath'&&Player.setCounts().dragon<3;
+            const cd=State.player.cooldowns[id]||0;
+            const disabled=locked||cd>0;
+            return `<div class="option ${disabled?'disabled':''}" onclick="Battle.useSkill('${id}')">
+                <div class="title">${sk.icon} ${sk.name} <span class="sub">【${classTag}】</span>${cd>0?`<span class="cooldown-tag">冷却 ${cd}</span>`:''}</div>
+                <div class="sub">SP ${sk.cost} · CD ${sk.cd||1} 回合 · ${locked?'需要龙神套装3件':sk.desc}</div>
+            </div>`;
+        }).join('');
+    },
+    showBag(){
+        const box=document.getElementById('bagList'),p=State.player;
+        box.innerHTML=p.bag.map(g=>`<div class="option ${p.gear[g.slot]?.uid===g.uid?'active':''}" onclick="Inventory.equip(State.player.bag.find(x=>x.uid==='${g.uid}'));UI.showBag();">
+            <div class="title rarity-${g.rarity}">${g.icon} ${g.name} ${p.gear[g.slot]?.uid===g.uid?'（已装备）':''}</div>
+            <div class="sub">${Inventory.desc(g)}<br>评分：${Inventory.score(g)}</div></div>`).join('');
+        this.show('bagPopup');
+    },
+    showTalents(){
+        const p=State.player,box=document.getElementById('talentList');
+        box.innerHTML=DATA.talents.map(t=>{
+            const lv=p.talents[t.id]||0, locked=p.level<t.unlock;
+            const status=locked?`Lv.${t.unlock} 解锁`:lv>=t.max?'已满级':p.skillPoints<=0?'技能点不足':'点击学习';
+            return `<div class="option" onclick="UI.learnTalent('${t.id}')"><div class="title">${t.name} Lv.${lv}/${t.max}</div><div class="sub">${t.desc}<br>${status}</div></div>`;
+        }).join('');
+        this.show('talentPopup');
+    },
+    learnTalent(id){
+        const t=DATA.talents.find(x=>x.id===id),p=State.player,lv=p.talents[id]||0;
+        if(!t||p.level<t.unlock||lv>=t.max||p.skillPoints<=0)return;
+        p.skillPoints--;p.talents[id]=lv+1;t.apply(p);Player.recalc();log(`学习天赋：${t.name} Lv.${lv+1}`,'system');this.showTalents();this.update();
+    },
+    renderClasses(){
+        const box=document.getElementById('classList');
+        box.innerHTML=Object.entries(DATA.classes).map(([id,c])=>`<div class="option ${State.player.cls===id?'active':''}" onclick="UI.changeClass('${id}')"><div class="title">${c.icon} ${c.name}</div><div class="sub">${c.desc}<br>职业技能：${DATA.skills[c.skill].name}</div></div>`).join('');
+    },
+    changeClass(id){State.player.cls=id;Player.recalc();this.renderClasses();this.renderSkills();this.update();log('已切换职业：'+DATA.classes[id].name,'system')},
+    showSalvage(){
+        const p=State.player, box=document.getElementById('salvageList');
+        if(!p.bag.length){box.innerHTML='<div class="sub">背包为空。</div>';this.show('salvagePopup');return}
+        box.innerHTML=p.bag.map(g=>{
+            const equipped=Object.values(p.gear).some(eq=>eq&&eq.uid===g.uid);
+            const cost=1+Math.floor((g.enhance||0)/3);
+            return `<div class="option ${equipped?'active':''}">
+                <div class="title rarity-${g.rarity}">${g.icon} ${g.name} ${equipped?'（已装备）':''}</div>
+                <div class="sub">${Inventory.desc(g)}<br>评分：${Inventory.score(g)}<br>重铸消耗：精华 ${cost}</div>
+                <div class="salvage-actions">
+                    <button class="small" onclick="Inventory.reroll('${g.uid}')">重铸词条</button>
+                    <button class="small secondary" onclick="Inventory.salvage('${g.uid}')">分解</button>
+                </div>
+            </div>`;
+        }).join('');
+        this.show('salvagePopup');
+    },
+    buildScore(type){
+        const p=State.player,s=Player.setCounts();
+        if(type==='fire')return (s.flame||0)*30+(p.stats.burn||0)*100+(p.blessings.includes('firePlus')?50:0);
+        if(type==='thunder')return (p.stats.thunder||0)*120+(p.blessings.includes('thunderPlus')?50:0);
+        if(type==='crit')return (p.stats.crit||0)+(p.blessings.includes('critPlus')?50:0)+(DATA.classes[p.cls].name==='刺客'?30:0);
+        return 0;
+    },
+    showBuilds(){
+        const box=document.getElementById('buildList');
+        box.innerHTML=Object.entries(DATA.builds).map(([id,b])=>`<div class="option">
+            <div class="title">${b.icon} ${b.name}</div>
+            <div class="sub">${b.desc}<br>当前流派强度：${Math.floor(UI.buildScore(id))}</div>
+        </div>`).join('');
+        this.show('buildPopup');
+    },
+    showPotionMenu(){
+        const p=State.player;
+        p.potions=p.potions||{smallHp:0,bigHp:0,mp:0,revive:0};
+        const box=document.getElementById('potionList');
+        const hpFull=p.hp>=p.stats.maxHp;
+        const mpFull=p.mp>=p.stats.maxMp;
+        box.innerHTML=`
+            <div class="option ${p.potions.smallHp<=0||hpFull?'disabled':''}" onclick="Battle.usePotion('smallHp')">
+                <div class="title">🧪 小型生命药水 ×${p.potions.smallHp}</div>
+                <div class="sub">恢复 35% 最大 HP。${hpFull?'HP 已满，无法使用。':''}</div>
+            </div>
+            <div class="option ${p.potions.bigHp<=0||hpFull?'disabled':''}" onclick="Battle.usePotion('bigHp')">
+                <div class="title">🍷 大型生命药水 ×${p.potions.bigHp}</div>
+                <div class="sub">恢复 70% 最大 HP。${hpFull?'HP 已满，无法使用。':''}</div>
+            </div>
+            <div class="option ${p.potions.mp<=0||mpFull?'disabled':''}" onclick="Battle.usePotion('mp')">
+                <div class="title">🔷 战技药水 ×${p.potions.mp}</div>
+                <div class="sub">恢复 45% 最大 SP。${mpFull?'SP 已满，无法使用。':''}</div>
+            </div>
+            <div class="option disabled">
+                <div class="title">✨ 复活药水 ×${p.potions.revive}</div>
+                <div class="sub">死亡时自动使用，恢复 50% HP，不能主动使用。</div>
+            </div>
+        `;
+        this.show('potionPopup');
+    },
+    showSetBook(){
+        const counts=Player.setCounts();
+        const box=document.getElementById('setBookList');
+        box.innerHTML=Object.entries(DATA.sets).map(([id,set])=>{
+            const count=counts[id]||0;
+            return `<div class="set-card ${count>0?'active':''}">
+                <div class="set-head"><div class="set-name">${set.icon} ${set.name}</div><div class="set-progress">当前 ${count}/3</div></div>
+                ${set.effects.map(e=>`<div class="set-effect ${count>=e.need?'on':''}">${count>=e.need?'✔':'✖'} ${e.text}</div>`).join('')}
+            </div>`;
+        }).join('');
+        this.show('setBookPopup');
+    },
+    showEnhance(){
+        const p=State.player,box=document.getElementById('enhanceList');
+        if(p.bag.length===0){box.innerHTML='<div class="sub">背包为空。</div>';this.show('enhancePopup');return}
+        box.innerHTML=p.bag.map(g=>{
+            const lv=g.enhance||0,costGold=80+lv*60,costStone=1+Math.floor(lv/3);
+            return `<div class="option"><div class="enhance-row"><div>
+                <div class="title rarity-${g.rarity}">${g.icon} ${g.name} <span class="enhance-level">+${lv}</span></div>
+                <div class="sub">${Inventory.desc(g)}<br>评分：${Inventory.score(g)}<br>强化消耗：金币 ${costGold}，强化石 ${costStone}</div>
+            </div><button class="small" onclick="Inventory.enhance('${g.uid}')">强化</button></div></div>`;
+        }).join('');
+        this.show('enhancePopup');
+    },
+    showShop(){
+        const box=document.getElementById('shopList');
+        box.innerHTML=DATA.shop.map(item=>`<div class="shop-item">
+            <div class="title">${item.icon} ${item.name}</div><div class="sub">${item.desc}<br>价格：${item.price} 金币</div>
+            <button class="small" style="margin-top:10px" onclick="UI.buyShop('${item.id}')">购买</button>
+        </div>`).join('');
+        this.show('shopPopup');
+    },
+    buyShop(id){
+        const item=DATA.shop.find(x=>x.id===id),p=State.player;
+        if(!item)return;
+        if(p.gold<item.price){log('金币不足。','system');return}
+        p.gold-=item.price;item.buy();Player.recalc();UI.update();UI.showShop();log(`购买：${item.name}`,'loot');
+    },
+    renderMap(){
+        const box=document.getElementById('mapList');
+        box.innerHTML=DATA.maps.map(m=>{
+            const unlocked=State.highest>=m.start,current=State.stage>=m.start&&State.stage<=m.end,cleared=m.end<999&&State.highest>m.end;
+            return `<div class="option map-card ${current?'active':''}" ${unlocked?`onclick="Game.travel(${m.start})"`:''}><div style="font-size:36px">${m.icon}</div><div><div class="title">${m.name}</div><div class="sub">${m.desc}<br>第 ${m.start} - ${m.end>=999?'∞':m.end} 关</div></div><div>${!unlocked?'🔒':current?'⭐ 当前':cleared?'✔ 已通关':'可前往'}</div></div>`;
+        }).join('');
+    },
+    renderStages(){
+        const box=document.getElementById('stageList');
+        const max=Math.max(40,State.highest+5);
+        box.innerHTML='';
+        for(let s=1;s<=max;s++){
+            const div=document.createElement('div');
+            const locked=s>State.highest,boss=DATA.bosses[s],cur=s===State.stage,cleared=s<State.highest;
+            div.className='stage '+(locked?'locked ':'')+(boss?'boss ':'')+(cur?'current ':'')+(cleared&&!cur?'cleared ':'');
+            div.innerHTML=`<div>第 ${s} 关</div><div>${locked?'🔒':boss?'👑 Boss':cur?'⭐ 当前':cleared?'✔':'•'}</div>`;
+            div.onclick=()=>this.previewStage(s);
+            box.appendChild(div);
+        }
+        this.previewStage(State.stage);
+    },
+    previewStage(s){
+        const locked=s>State.highest,map=getMap(s),boss=DATA.bosses[s],e=boss||DATA.enemies.find(x=>map.enemies.includes(x.name));
+        const box=document.getElementById('stagePreview');
+        if(locked){box.innerHTML=`<div class="title">🔒 第 ${s} 关未解锁</div><div class="sub">当前最高解锁：第 ${State.highest} 关。</div>`;return}
+        box.innerHTML=`<div class="title">${boss?'👑 Boss':'⚔️ 关卡'}预览：第 ${s} 关</div><div class="sub">地图：${map.name}<br>怪物：${e.name}<br>可能掉落：武器 / 防具 / 饰品<br>${boss?'Boss 必掉装备，并奖励技能点。':'普通怪概率掉落，精英怪概率更高。'}</div><button class="small" onclick="Game.travel(${s})">前往此关</button>`;
+    },
+    showReward(){
+        let rewards=[
+            {n:'攻击祝福',d:'攻击 +6',f:()=>State.player.base.atk+=6},
+            {n:'生命祝福',d:'HP +35',f:()=>{State.player.base.hp+=35;State.player.hp+=35}},
+            {n:'战意祝福',d:'SP +20',f:()=>{State.player.base.mp+=20;State.player.mp+=20}},
+            {n:'补给包',d:'小型生命药水 +1，战技药水 +1',f:()=>{State.player.potions.smallHp++;State.player.potions.mp++;}},
+            {n:'幸运祝福',d:'暴击 +4%',f:()=>State.player.base.crit+=4}
+        ];
+        if(State.enemy && State.enemy.type==='boss'){
+            rewards=rewards.concat(DATA.blessings.map(b=>({n:b.icon+' '+b.name,d:b.desc,f:()=>b.apply(State.player)})));
+        }
+        rewards=rewards.sort(()=>Math.random()-.5).slice(0,3);
+        document.getElementById('rewardList').innerHTML=rewards.map((r,i)=>`<div class="option blessing-card" onclick="UI.pickReward(${i})"><div class="title">✨ ${r.n}</div><div class="sub">${r.d}</div></div>`).join('');
+        window.rewardChoices=rewards;this.show('rewardPopup');
+    },
+    pickReward(i){window.rewardChoices[i].f();Player.recalc();this.close('rewardPopup');Game.nextBattle();this.update()}
+};
+
+
+const Effects={
+    skill(skill,target,dmg){
+        const color=skill.color||'#fff';
+        const sx=State.player.stats ? 240 : 180;
+        const sy=235;
+        const tx=target.x;
+        const ty=target.y-80;
+
+        if(['fireball','poison','arcane','holy','dragon'].includes(skill.anim)){
+            State.effects.push({kind:'projectile',anim:skill.anim,x:220,y:230,tx,ty,color,life:34,max:34,size:skill.anim==='dragon'?30:16});
+        }else if(skill.anim==='lightning'){
+            State.effects.push({kind:'lightning',x:220,y:210,tx,ty,color,life:18,max:18});
+        }else if(skill.anim==='slash'||skill.anim==='shadow'||skill.anim==='whirlwind'){
+            State.effects.push({kind:'slash',anim:skill.anim,x:tx,y:ty,color,life:24,max:24});
+        }else if(skill.anim==='frost'){
+            State.effects.push({kind:'frost',x:tx,y:ty,color,life:30,max:30});
+        }
+        this.float(tx,ty-40,'-'+dmg,color);
+    },
+    float(x,y,text,color){
+        State.effects.push({kind:'float',x,y,text,color,life:45,max:45});
+    },
+    enemyHit(player,dmg,type){
+        const color=type==='boss'?'#ff3d2e':'#ff6868';
+        State.effects.push({kind:'enemySlash',x:player.x||180,y:(player.y||300)-75,color,life:24,max:24,boss:type==='boss'});
+        State.effects.push({kind:'impact',x:player.x||180,y:(player.y||300)-65,color,life:22,max:22});
+        this.float(player.x||180,(player.y||300)-145,'-'+dmg,color);
+    },
+    playerHit(enemy,dmg,crit){
+        const color=crit?'#ffd75c':'#dff7ff';
+        State.effects.push({kind:'playerSlash',x:enemy.x||680,y:(enemy.y||300)-75,color,life:22,max:22,crit:crit});
+        State.effects.push({kind:'impact',x:enemy.x||680,y:(enemy.y||300)-70,color:crit?'#ffd75c':'#7de7ff',life:20,max:20});
+        this.float(enemy.x||680,(enemy.y||300)-145,'-'+dmg,crit?'#ffd75c':'#ffffff');
+    },
+    updateAndDraw(){
+        for(let i=State.effects.length-1;i>=0;i--){
+            const ef=State.effects[i];
+            ef.life--;
+            const t=1-ef.life/ef.max;
+            ctx.save();
+            ctx.globalAlpha=Math.max(0,ef.life/ef.max);
+
+            if(ef.kind==='projectile'){
+                if(ef.anim==='dragon'){ctx.fillStyle='rgba(255,70,30,.08)';ctx.fillRect(0,0,900,450);}
+                const x=ef.x+(ef.tx-ef.x)*t;
+                const y=ef.y+(ef.ty-ef.y)*t;
+                const r=ef.size*(0.7+0.5*Math.sin(t*Math.PI));
+                ctx.shadowColor=ef.color;ctx.shadowBlur=20;
+                const g=ctx.createRadialGradient(x,y,2,x,y,r);
+                g.addColorStop(0,'#fff');g.addColorStop(.35,ef.color);g.addColorStop(1,'rgba(255,255,255,0)');
+                ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+
+                if(ef.anim==='dragon'){
+                    ctx.font='34px Microsoft YaHei';ctx.fillText('🐲',x-18,y+10);
+                }
+            }
+
+            if(ef.kind==='lightning'){
+                ctx.fillStyle='rgba(255,244,120,.08)';ctx.fillRect(0,0,900,450);
+                ctx.strokeStyle=ef.color;ctx.lineWidth=4;ctx.shadowColor=ef.color;ctx.shadowBlur=18;
+                ctx.beginPath();ctx.moveTo(ef.x,ef.y);
+                const seg=7;
+                for(let j=1;j<seg;j++){
+                    const p=j/seg;
+                    ctx.lineTo(ef.x+(ef.tx-ef.x)*p+(Math.random()-.5)*35, ef.y+(ef.ty-ef.y)*p+(Math.random()-.5)*35);
+                }
+                ctx.lineTo(ef.tx,ef.ty);ctx.stroke();
+            }
+
+            if(ef.kind==='slash'){
+                ctx.translate(ef.x,ef.y);
+                ctx.rotate((ef.anim==='shadow'?-1:1)*t*Math.PI);
+                ctx.strokeStyle=ef.color;ctx.lineWidth=ef.anim==='whirlwind'?8:6;ctx.shadowColor=ef.color;ctx.shadowBlur=16;
+                const radius=ef.anim==='whirlwind'?70:55;
+                ctx.beginPath();ctx.arc(0,0,radius,-1.1,1.1);ctx.stroke();
+                if(ef.anim==='shadow'){
+                    ctx.fillStyle='rgba(80,40,180,.25)';ctx.beginPath();ctx.arc(0,0,70*t,0,Math.PI*2);ctx.fill();
+                }
+            }
+
+            if(ef.kind==='frost'){
+                ctx.translate(ef.x,ef.y);
+                ctx.strokeStyle=ef.color;ctx.lineWidth=3;ctx.shadowColor=ef.color;ctx.shadowBlur=18;
+                for(let j=0;j<8;j++){
+                    ctx.rotate(Math.PI/4);
+                    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(70*t,0);ctx.stroke();
+                }
+            }
+
+            if(ef.kind==='playerSlash'){
+                ctx.translate(ef.x,ef.y);
+                const t=1-ef.life/ef.max;
+                ctx.rotate(0.95-t*1.75);
+                ctx.strokeStyle=ef.color;
+                ctx.lineWidth=ef.crit?10:7;
+                ctx.shadowColor=ef.color;
+                ctx.shadowBlur=ef.crit?28:18;
+                ctx.beginPath();
+                ctx.arc(0,0,ef.crit?82:62,-1.25,1.05);
+                ctx.stroke();
+
+                ctx.rotate(-0.8);
+                ctx.beginPath();
+                ctx.arc(0,0,ef.crit?60:46,-.9,.85);
+                ctx.stroke();
+
+                if(ef.crit){
+                    ctx.fillStyle='rgba(255,215,92,'+(0.18*(1-t))+')';
+                    ctx.beginPath();
+                    ctx.arc(0,0,85*t,0,Math.PI*2);
+                    ctx.fill();
+                }
+            }
+
+            if(ef.kind==='enemySlash'){
+                ctx.translate(ef.x,ef.y);
+                const t=1-ef.life/ef.max;
+                ctx.rotate(-0.9+t*1.8);
+                ctx.strokeStyle=ef.color;
+                ctx.lineWidth=ef.boss?10:7;
+                ctx.shadowColor=ef.color;
+                ctx.shadowBlur=22;
+                ctx.beginPath();
+                ctx.arc(0,0,ef.boss?82:62,-1.2,1.1);
+                ctx.stroke();
+
+                ctx.rotate(0.8);
+                ctx.beginPath();
+                ctx.arc(0,0,ef.boss?64:48,-.9,.9);
+                ctx.stroke();
+            }
+
+            if(ef.kind==='impact'){
+                const t=1-ef.life/ef.max;
+                ctx.translate(ef.x,ef.y);
+                ctx.fillStyle='rgba(255,80,80,'+(0.22*(1-t))+')';
+                ctx.beginPath();
+                ctx.arc(0,0,70*t,0,Math.PI*2);
+                ctx.fill();
+
+                ctx.strokeStyle=ef.color;
+                ctx.lineWidth=3;
+                ctx.shadowColor=ef.color;
+                ctx.shadowBlur=18;
+                for(let k=0;k<10;k++){
+                    ctx.rotate(Math.PI/5);
+                    ctx.beginPath();
+                    ctx.moveTo(18*t,0);
+                    ctx.lineTo(75*t,0);
+                    ctx.stroke();
+                }
+            }
+
+            if(ef.kind==='float'){
+                ctx.font='bold 26px Microsoft YaHei';ctx.textAlign='center';
+                ctx.fillStyle=ef.color;ctx.shadowColor='#000';ctx.shadowBlur=5;
+                ctx.fillText(ef.text,ef.x,ef.y-(ef.max-ef.life)*1.2);
+            }
+
+            ctx.restore();
+            if(ef.life<=0)State.effects.splice(i,1);
+        }
+    }
+};
+
+const Render={
+    loop(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        ctx.save();
+        if(State.screenShake>0){
+            const sx=(Math.random()-.5)*State.screenShake;
+            const sy=(Math.random()-.5)*State.screenShake;
+            ctx.translate(sx,sy);
+            State.screenShake*=0.86;
+            if(State.screenShake<0.4)State.screenShake=0;
+        }
+
+        const map=getMap(), grd=ctx.createLinearGradient(0,0,0,450);
+        grd.addColorStop(0,map.bg[0]);grd.addColorStop(.62,map.bg[1]);grd.addColorStop(1,'#080b12');
+        ctx.fillStyle=grd;ctx.fillRect(0,0,900,450);
+
+        // 月亮 / 战技天体
+        const moon=ctx.createRadialGradient(720,78,4,720,78,62);
+        moon.addColorStop(0,'rgba(255,245,190,.95)');
+        moon.addColorStop(.45,'rgba(255,220,130,.22)');
+        moon.addColorStop(1,'rgba(255,220,130,0)');
+        ctx.fillStyle=moon;ctx.beginPath();ctx.arc(720,78,62,0,Math.PI*2);ctx.fill();
+
+        // 星星
+        for(let i=0;i<75;i++){
+            const x=(i*97)%900, y=(i*53)%205, r=((i*17)%10)/10+0.45;
+            ctx.fillStyle='rgba(255,255,255,'+(0.25+((i*13)%60)/100)+')';
+            ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+        }
+
+        // 远景山脉
+        const far=ctx.createLinearGradient(0,220,0,330);
+        far.addColorStop(0,'rgba(0,0,0,.12)');far.addColorStop(1,'rgba(0,0,0,.42)');
+        ctx.fillStyle=far;ctx.beginPath();ctx.moveTo(0,320);ctx.lineTo(140,252);ctx.lineTo(280,320);ctx.lineTo(455,232);ctx.lineTo(620,320);ctx.lineTo(780,258);ctx.lineTo(900,320);ctx.fill();
+
+        // 中景雾气
+        const fog=ctx.createLinearGradient(0,245,900,330);
+        fog.addColorStop(0,'rgba(140,190,255,.03)');
+        fog.addColorStop(.5,'rgba(255,255,255,.11)');
+        fog.addColorStop(1,'rgba(140,190,255,.03)');
+        ctx.fillStyle=fog;ctx.fillRect(0,250,900,80);
+
+        // 地面
+        const ground=ctx.createLinearGradient(0,318,0,450);
+        ground.addColorStop(0,'rgba(100,120,160,.38)');
+        ground.addColorStop(.2,'rgba(20,25,38,.88)');
+        ground.addColorStop(1,'rgba(5,7,12,.98)');
+        ctx.fillStyle=ground;ctx.fillRect(0,318,900,132);
+
+        // 战斗平台
+        const platform=ctx.createRadialGradient(450,382,20,450,382,360);
+        platform.addColorStop(0,'rgba(255,215,92,.16)');
+        platform.addColorStop(.45,'rgba(90,150,255,.12)');
+        platform.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=platform;ctx.beginPath();ctx.ellipse(450,382,360,58,0,0,Math.PI*2);ctx.fill();
+
+        ctx.strokeStyle='rgba(255,255,255,.08)';
+        ctx.lineWidth=1;
+        for(let i=0;i<8;i++){
+            ctx.beginPath();
+            ctx.moveTo(0,335+i*14);
+            ctx.quadraticCurveTo(450,350+i*9,900,335+i*14);
+            ctx.stroke();
+        }
+        Render.character(180,300,true,State.player);
+        Render.character(680,300,false,State.enemy);
+        Effects.updateAndDraw();
+
+        if(State.playerHitFlash>0){
+            ctx.fillStyle='rgba(255,0,0,'+(State.playerHitFlash/90)+')';
+            ctx.fillRect(0,0,900,450);
+            State.playerHitFlash--;
+        }
+
+        ctx.restore();
+        requestAnimationFrame(Render.loop);
+    },
+    character(x,y,isPlayer,obj){
+        ctx.save();
+        if(isPlayer && State.playerAnim.active){
+            State.playerAnim.phase += 0.12;
+            const p=Math.min(State.playerAnim.phase,1);
+            const lunge=Math.sin(p*Math.PI)*95;
+            x += lunge;
+            if(p>=1){
+                State.playerAnim.active=false;
+                State.playerAnim.phase=0;
+            }
+        }
+        if(!isPlayer && State.enemyAnim.active){
+            State.enemyAnim.phase += 0.09;
+            const p=Math.min(State.enemyAnim.phase,1);
+            const lunge=Math.sin(p*Math.PI)*95;
+            x -= lunge;
+            if(p>=1){
+                State.enemyAnim.active=false;
+                State.enemyAnim.phase=0;
+            }
+        }
+        if(!isPlayer && State.enemyHitFlash>0){
+            x += (Math.random()-.5)*8;
+        }
+        ctx.translate(x,y);
+        const pulse=0.85+Math.sin(Date.now()/360+x)*0.08;
+        const aura=ctx.createRadialGradient(0,-45,10,0,-45,isPlayer?95:110);
+        aura.addColorStop(0,isPlayer?'rgba(90,170,255,.26)':(obj.type==='boss'?'rgba(255,55,55,.30)':'rgba(180,100,255,.22)'));
+        aura.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=aura;ctx.beginPath();ctx.arc(0,-45,(isPlayer?95:105)*pulse,0,Math.PI*2);ctx.fill();
+
+        ctx.fillStyle='rgba(0,0,0,.48)';ctx.beginPath();ctx.ellipse?ctx.ellipse(0,72,70,18,0,0,Math.PI*2):(ctx.arc(0,72,44,0,Math.PI*2));ctx.fill();
+        if(isPlayer){
+            const c=DATA.classes[obj.cls];
+
+            if(State.playerAnim.active){
+                ctx.save();
+                ctx.strokeStyle=State.playerAnim.kind==='crit'?'rgba(255,215,92,.85)':'rgba(220,247,255,.72)';
+                ctx.lineWidth=State.playerAnim.kind==='crit'?9:6;
+                ctx.shadowColor=State.playerAnim.kind==='crit'?'#ffd75c':'#7de7ff';
+                ctx.shadowBlur=24;
+                ctx.beginPath();
+                ctx.arc(46,-42,70,-0.9,0.85);
+                ctx.stroke();
+                ctx.restore();
+            }
+            ctx.fillStyle='#8d1f2d';ctx.beginPath();ctx.moveTo(-38,-55);ctx.quadraticCurveTo(-70,0,-35,62);ctx.lineTo(0,45);ctx.lineTo(35,62);ctx.quadraticCurveTo(70,0,38,-55);ctx.fill();
+            const armorGrad=ctx.createLinearGradient(-40,-60,40,40);armorGrad.addColorStop(0,'#d8ecff');armorGrad.addColorStop(.45,'#4d8df7');armorGrad.addColorStop(1,'#193a85');ctx.fillStyle=armorGrad;Render.round(-38,-55,76,88,18);ctx.fill();ctx.strokeStyle='#cfe5ff';ctx.lineWidth=3;ctx.stroke();
+            ctx.fillStyle='#ffd4a3';ctx.beginPath();ctx.arc(0,-90,36,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='#2b1608';ctx.beginPath();ctx.arc(0,-105,34,Math.PI,0);ctx.fill();
+            ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(-12,-90,6,0,Math.PI*2);ctx.arc(12,-90,6,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='#295cc9';ctx.beginPath();ctx.arc(-11,-90,3,0,Math.PI*2);ctx.arc(13,-90,3,0,Math.PI*2);ctx.fill();
+            ctx.font='30px Microsoft YaHei';ctx.textAlign='center';ctx.fillText(c.icon,0,-35);
+            ctx.save();ctx.translate(60,-5);ctx.rotate(-.5);ctx.fillStyle='#dff7ff';ctx.fillRect(-5,-70,10,75);ctx.fillStyle='#ffc857';ctx.fillRect(-20,0,40,8);ctx.restore();
+        }else{
+            const boss=obj.type==='boss';
+
+            if(State.enemyAnim.active){
+                ctx.save();
+                ctx.strokeStyle=boss?'rgba(255,70,45,.55)':'rgba(255,120,120,.45)';
+                ctx.lineWidth=boss?8:5;
+                ctx.shadowColor=boss?'#ff3d2e':'#ff7777';
+                ctx.shadowBlur=24;
+                ctx.beginPath();
+                ctx.arc(0,-52,boss?78:66,-0.7,0.9);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            const enemyGrad=ctx.createRadialGradient(-18,-72,8,0,-48,boss?70:58);enemyGrad.addColorStop(0,boss?'#ff6b4a':'#a47cff');enemyGrad.addColorStop(1,boss?'#520909':'#2b1c49');ctx.fillStyle=enemyGrad;ctx.beginPath();ctx.arc(0,-50,boss?62:52,0,Math.PI*2);ctx.fill();ctx.strokeStyle=boss?'#ff615d':'#bd92ff';ctx.lineWidth=2;ctx.stroke();
+            if(State.enemyHitFlash>0){
+                ctx.fillStyle='rgba(255,255,255,'+(State.enemyHitFlash/24)+')';
+                ctx.beginPath();
+                ctx.arc(0,-50,boss?64:54,0,Math.PI*2);
+                ctx.fill();
+                State.enemyHitFlash--;
+            }
+            ctx.fillStyle=boss?'#4a0909':'#34234f';ctx.beginPath();ctx.arc(0,-98,38,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle='#ddd0aa';ctx.beginPath();ctx.moveTo(-24,-125);ctx.lineTo(-50,-158);ctx.lineTo(-10,-132);ctx.moveTo(24,-125);ctx.lineTo(50,-158);ctx.lineTo(10,-132);ctx.fill();
+            ctx.fillStyle='#ff3030';ctx.shadowColor='#ff3030';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(-13,-96,7,0,Math.PI*2);ctx.arc(13,-96,7,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+            ctx.fillStyle='#fff4df';ctx.beginPath();ctx.moveTo(-8,-78);ctx.lineTo(-3,-58);ctx.lineTo(2,-78);ctx.moveTo(8,-78);ctx.lineTo(3,-58);ctx.lineTo(-2,-78);ctx.fill();
+        }
+        // 头顶血条
+        const hpCurrent = isPlayer ? State.player.hp : obj.hp;
+        const hpMax = isPlayer ? State.player.stats.maxHp : obj.maxHp;
+        const hpRate = Math.max(0, Math.min(1, hpCurrent / hpMax));
+
+        const barY = isPlayer ? -170 : -205;
+        const barW = 120;
+        const barH = 12;
+
+        ctx.fillStyle='rgba(0,0,0,.65)';
+        ctx.fillRect(-barW/2, barY, barW, barH);
+
+        const hpGrad = ctx.createLinearGradient(-barW/2,0,barW/2,0);
+        hpGrad.addColorStop(0,'#ff4d4d');
+        hpGrad.addColorStop(1,'#6dff7a');
+        ctx.fillStyle=hpGrad;
+        ctx.fillRect(-barW/2, barY, barW*hpRate, barH);
+
+        ctx.strokeStyle='rgba(255,255,255,.6)';
+        ctx.lineWidth=1;
+        ctx.strokeRect(-barW/2, barY, barW, barH);
+
+        ctx.font='11px Microsoft YaHei';
+        ctx.fillStyle='#ffffff';
+        ctx.fillText(Math.floor(hpCurrent)+'/'+Math.floor(hpMax),0,barY+10);
+
+        ctx.textAlign='center';ctx.shadowColor='#000';ctx.shadowBlur=5;ctx.fillStyle='#fff';ctx.font='bold 17px Microsoft YaHei';ctx.fillText(isPlayer?DATA.classes[obj.cls].name:obj.name,0,isPlayer?-145:-178);
+        if(!isPlayer&&obj.type==='boss'){ctx.fillStyle='#ff5555';ctx.fillText('【BOSS】',0,-154)}
+        ctx.restore();
+    },
+    round(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
+};
+
+window.addEventListener('error',e=>{log('⚠️ 运行错误：'+e.message,'system')});
+
+document.addEventListener('keydown',function(e){
+    if(e.ctrlKey && e.key.toLowerCase()==='s'){
+        e.preventDefault();
+        SaveSystem.save();
+    }
+    if(e.ctrlKey && e.key.toLowerCase()==='l'){
+        e.preventDefault();
+        SaveSystem.load();
+    }
+});
+
+Game.init();
+</script>
+</body>
+</html>
